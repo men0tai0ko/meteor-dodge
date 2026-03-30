@@ -1847,7 +1847,7 @@ const TitleScreen = {
         // [LOGIC-1] シェアURL
         // 本番デプロイ後は SHARE_URL を実際のURLに変更すること
         // 例: const SHARE_URL = "https://example.com/game/";
-        const SHARE_URL = null; // null の場合は現在のURLを使用（開発中はfile://になる）
+        const SHARE_URL = https://men0tai0ko.github.io/meteor-dodge/; // null の場合は現在のURLを使用（開発中はfile://になる）
         const shareUrl  = SHARE_URL || location.href.split("?")[0];
 
         if (navigator.share) {
