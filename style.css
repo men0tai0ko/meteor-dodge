@@ -463,6 +463,21 @@ html, body {
 .instruction-item-icon { font-size: 1.4rem; flex-shrink: 0; width: 32px; text-align: center; }
 .item-description { font-size: 0.85rem; color: #ccc; line-height: 1.4; }
 
+.how-to-list {
+    list-style: none;
+    padding: 4px 0 0 4px;
+    margin: 4px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.how-to-list li {
+    font-size: 0.83rem;
+    color: #ccc;
+    line-height: 1.4;
+    padding: 2px 0;
+}
+
 /* ===== 格納庫・ショップ（スクロール調整）===== */
 .storage-container, .shop-scroll-container {
     overflow-y: auto;
@@ -2827,9 +2842,6 @@ html, body {
 
 /* 統計画面：シェアボタン */
 .share-btn {
-    flex: 0 0 auto;
-    width: auto;
-    min-width: 110px;
     background: linear-gradient(135deg, #1a8cd8, #0d6fa8);
     color: #fff;
     border-color: rgba(26, 140, 216, 0.5);

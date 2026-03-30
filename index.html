@@ -43,40 +43,88 @@
     <div class="screen-container">
         <h2>遊び方</h2>
         <div class="screen-content">
-                <div class="instruction-content">
-                    <div class="instruction-section">
-                        <h3>基本操作</h3>
-                        <p>マウスまたはタッチで宇宙船を操作</p>
-                        <p>隕石に当たらないように避け続ける</p>
-                    </div>
+            <div class="instruction-content">
 
-                    <div class="instruction-section">
-                        <h3>アイテム</h3>
-                        <div class="item-example">
-                            <div class="instruction-item-icon instruction-shield-icon">🛡️</div>
-                            <div class="item-description"><strong>シールド</strong> - 取得後5秒間無敵状態</div>
-                        </div>
-                        <div class="item-example">
-                            <div class="instruction-item-icon instruction-wormhole-icon">🌀</div>
-                            <div class="item-description"><strong>ワームホール</strong> - 通過でボーナス距離獲得</div>
-                        </div>
-                        <div class="item-example">
-                            <div class="instruction-item-icon instruction-resource-icon">+</div>
-                            <div class="item-description">
-                                <strong>資源</strong> -
-                                取るとライフが1つ回復します。最大ライフ数を超えることはありません。
-                            </div>
-                        </div>
-                    </div>
+                <!-- 基本操作 -->
+                <div class="instruction-section">
+                    <h3>🕹️ 基本操作</h3>
+                    <p>マウスまたはタッチで宇宙船を左右に動かす</p>
+                    <p>隕石に当たるとライフが1減り燃料も消費される</p>
+                    <p>ライフが0になるか燃料が切れるとゲームオーバー</p>
+                </div>
 
-                    <div class="instruction-section">
-                        <h3>スコア</h3>
-                        <p>飛行距離が長いほど高得点</p>
-                        <p>ワームホール通過でボーナス</p>
+                <!-- 燃料 -->
+                <div class="instruction-section">
+                    <h3>⛽ 燃料</h3>
+                    <p>宇宙船には燃料があり、時間経過で少しずつ減少する</p>
+                    <p>シールド中は消費2倍・隕石衝突で30%消費</p>
+                    <p>ワームホール通過で5%回復。燃料ゼロで即ゲームオーバー</p>
+                </div>
+
+                <!-- 出現オブジェクト -->
+                <div class="instruction-section">
+                    <h3>🌌 出現するもの</h3>
+                    <div class="item-example">
+                        <div class="instruction-item-icon">☄️</div>
+                        <div class="item-description"><strong>隕石</strong> - 通常・高速（赤）・大型（灰）・ボスの4種。500〜1500kmごとに強い隕石が出現</div>
+                    </div>
+                    <div class="item-example">
+                        <div class="instruction-item-icon">🛡️</div>
+                        <div class="item-description"><strong>シールド</strong> - 取得後5秒間無敵。この間に隕石へ体当たりすると鉱石を採掘できる</div>
+                    </div>
+                    <div class="item-example">
+                        <div class="instruction-item-icon">🌀</div>
+                        <div class="item-description"><strong>ワームホール</strong> - 通過でボーナス距離を獲得。燃料も少し回復</div>
+                    </div>
+                    <div class="item-example">
+                        <div class="instruction-item-icon">⬡</div>
+                        <div class="item-description"><strong>資源</strong> - 取得でライフ1回復（最大ライフ時はスコアに加算）</div>
                     </div>
                 </div>
 
+                <!-- 採掘 -->
+                <div class="instruction-section">
+                    <h3>⛏️ 採掘システム</h3>
+                    <p>シールド中に隕石へ体当たりすると鉱石が採掘できる</p>
+                    <ul class="how-to-list">
+                        <li>⚙️ 鉄（コモン）― 出現率70%</li>
+                        <li>🔗 銀（レア）― 出現率25%</li>
+                        <li>💎 金（エピック）― 出現率5%</li>
+                    </ul>
+                    <p>連続採掘でコンボボーナス発生。大型隕石ほど採掘率UP</p>
                 </div>
+
+                <!-- スコア -->
+                <div class="instruction-section">
+                    <h3>🏆 スコア</h3>
+                    <p>飛行距離はスコアに含まれない（独立した記録として表示）</p>
+                    <ul class="how-to-list">
+                        <li>🌀 ワームホール通過：+200点</li>
+                        <li>🛡️ シールド取得：+100点</li>
+                        <li>⬡ 資源取得：+150点</li>
+                        <li>🔫 隕石破壊：+10〜500点（種類による）</li>
+                    </ul>
+                </div>
+
+                <!-- 格納庫 -->
+                <div class="instruction-section">
+                    <h3>📦 格納庫でできること</h3>
+                    <div class="item-example">
+                        <div class="instruction-item-icon">⚔️</div>
+                        <div class="item-description"><strong>装備</strong> - 鉱石で武器を購入・強化。レーザー・ホーミング・チャージショットなど6種</div>
+                    </div>
+                    <div class="item-example">
+                        <div class="instruction-item-icon">🚀</div>
+                        <div class="item-description"><strong>機体</strong> - 実績を積むと新機体が解放。見た目・弾の形状が変化</div>
+                    </div>
+                    <div class="item-example">
+                        <div class="instruction-item-icon">✨</div>
+                        <div class="item-description"><strong>バフ</strong> - ゲーム開始前に自動適用されるアイテムをスロットにセット（3枠）</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
         <button id="backFromHowToPlay" class="back-btn">戻る</button>
     </div>
 </div>
