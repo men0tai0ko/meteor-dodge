@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <title>隕石を回避せよ：ワームホールアドベンチャー</title>
+        <link rel="stylesheet" href="./style.css" />
+    </head>
+    <body>
+        <!-- タイトル画面 -->
+        <div id="titleScreen" class="screen active">
+            <div class="title-container">
+                <h1 class="game-title">隕石を回避せよ</h1>
+                <h2 class="game-subtitle">ワームホールアドベンチャー</h2>
+
+                <div class="title-background">
+                    <div class="stars"></div>
+                    <div class="meteors"></div>
+                </div>
+
+                <!-- ベストスコア表示（前回記録がある場合のみ表示） -->
+                <div id="titleBestScore" class="title-best-score" style="display:none">
+                    🏆 ベスト: <span id="titleBestScoreValue">0</span> 点
+                </div>
+
+                <div class="menu-buttons">
+                    <button id="startBtnTitle" class="menu-btn start-btn">ゲームスタート</button>
+                    <button id="storageBtn" class="menu-btn">格納庫</button>
+                        <button id="howToPlayBtn" class="menu-btn">遊び方</button>
+                    <button id="settingsBtn" class="menu-btn">設定</button>
+                    <button id="achievementsBtn" class="menu-btn">実績</button>
+                </div>
+<!--
+                <div class="quick-instruction">
+                    <p>隕石を避けながらワームホールを探せ！</p>
+                    <p>シールドを集めて無敵になろう！</p>
+                </div> -->
+            </div>
+        </div>
+
+        <!-- 遊び方画面 -->
+        <div id="howToPlayScreen" class="screen">
+    <div class="screen-container">
+        <h2>遊び方</h2>
+        <div class="screen-content">
+                <div class="instruction-content">
+                    <div class="instruction-section">
+                        <h3>基本操作</h3>
+                        <p>マウスまたはタッチで宇宙船を操作</p>
+                        <p>隕石に当たらないように避け続ける</p>
+                    </div>
+
+                    <div class="instruction-section">
+                        <h3>アイテム</h3>
+                        <div class="item-example">
+                            <div class="instruction-item-icon instruction-shield-icon">🛡️</div>
+                            <div class="item-description"><strong>シールド</strong> - 取得後5秒間無敵状態</div>
+                        </div>
+                        <div class="item-example">
+                            <div class="instruction-item-icon instruction-wormhole-icon">🌀</div>
+                            <div class="item-description"><strong>ワームホール</strong> - 通過でボーナス距離獲得</div>
+                        </div>
+                        <div class="item-example">
+                            <div class="instruction-item-icon instruction-resource-icon">+</div>
+                            <div class="item-description">
+                                <strong>資源</strong> -
+                                取るとライフが1つ回復します。最大ライフ数を超えることはありません。
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="instruction-section">
+                        <h3>スコア</h3>
+                        <p>飛行距離が長いほど高得点</p>
+                        <p>ワームホール通過でボーナス</p>
+                    </div>
+                </div>
+
+                </div>
+        <button id="backFromHowToPlay" class="back-btn">戻る</button>
+    </div>
+</div>
+
+        <!-- 設定画面 -->
+        <div id="settingsScreen" class="screen">
+    <div class="screen-container">
+        <h2>設定</h2>
+        <div class="screen-content">
+                <div class="settings-content">
+                    <div class="setting-item">
+                        <label for="bgmToggle">BGM</label>
+                        <select id="bgmToggle">
+                            <option value="on" selected>ON</option>
+                            <option value="off">OFF</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label for="soundToggle">効果音</label>
+                        <select id="soundToggle">
+                            <option value="on" selected>ON</option>
+                            <option value="off">OFF</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label for="miningSoundToggle">採掘効果音:</label>
+                        <select id="miningSoundToggle" class="setting-select">
+                            <option value="on">ON</option>
+                            <option value="off">OFF</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label for="vibrationToggle">振動フィードバック:</label>
+                        <select id="vibrationToggle" class="setting-select">
+                            <option value="on">ON</option>
+                            <option value="off">OFF</option>
+                        </select>
+                    </div>
+                    <div class="setting-item" id="vibrationIntensityItem">
+                        <label for="vibrationIntensity">振動強度:</label>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <input type="range" id="vibrationIntensity" min="1" max="3" step="1" value="2"
+                                   style="accent-color:#00ffff;flex:1;">
+                            <span id="vibrationIntensityLabel">中</span>
+                        </div>
+                    </div>
+                </div>
+        </div>
+        <button id="backFromSettings" class="back-btn">戻る</button>
+    </div>
+</div>
+
+        <!-- 実績画面 -->
+        <div id="achievementsScreen" class="screen">
+            <div class="screen-container">
+                <h2>実績</h2>
+                <!-- JSがここをinnerHTMLで書き換えるためachievements-contentに直接スクロールを当てる -->
+                <div class="achievements-content screen-content">
+                    <!-- JSで動的に生成 -->
+                </div>
+                <button id="backFromAchievements" class="back-btn">戻る</button>
+            </div>
+        </div>
+
+        <!-- ゲーム画面 -->
+        <div id="gameScreen" class="screen">
+            <div class="container">
+                <header>
+                    <h1>隕石を回避せよ<br />ワームホールアドベンチャー</h1>
+                </header>
+
+                <div class="game-stats">
+                    <div>飛行距離: <span id="distance">0</span> km</div>
+                    <div>スコア: <span id="score">0</span></div>
+                    <div>ワームホール効果: <span id="wormholeCount">0</span> 回</div>
+                    <div>シールド: <span id="shieldStatus">なし</span></div>
+                </div>
+
+                <!-- クールダウン表示用の要素を追加 -->
+                <!--
+                <div class="cooldown-display">
+                    <div class="item-cooldown" id="shieldCooldown"></div>-->
+                <!-- 将来的に他のアイテムのクールダウンもここに追加可能 -->
+                <!--</div>-->
+
+                <!-- ゲームエリア -->
+                <div class="game-area">
+                    <canvas id="gameCanvas"></canvas>
+                    <div class="wormhole-effect" id="wormholeEffect"></div>
+                    <div class="shield-effect" id="shieldEffect"></div>
+                    <div class="sr-only" id="gameStatus" aria-live="polite"></div>
+
+                    <!-- ゲーム中ボタン：右上オーバーレイ -->
+                    <div class="game-controls-overlay" id="gameControls">
+                        <button id="settingsBtnFromGame" class="overlay-btn">⚙️</button>
+                        <button id="achievementsBtnFromGame" class="overlay-btn">🏆</button>
+                    </div>
+
+                    <!-- ゲームオーバー画面 -->
+                    <div class="game-over" id="gameOver">
+                        <h2>ゲームオーバー！</h2>
+                        <div class="score-breakdown" id="scoreBreakdown"></div>
+                    </div>
+                </div>
+
+                <!-- ゲームオーバー時ボタン（フィールド下） -->
+                <div class="game-over-controls" id="gameOverControls" style="display: none">
+                    <button id="restartBtn" class="menu-btn">再プレイ</button>
+                    <button id="backToTitle" class="menu-btn">タイトルへ</button>
+                </div>
+                <!--
+                <div class="instructions">
+                    <p>操作方法: マウスまたはタッチで宇宙船を操作して隕石を避けましょう</p>
+                    <p>ワームホールに触れるとボーナス距離が加算されます！</p>
+                    <p>シールドアイテムを取ると一時的に無敵になれます！</p>
+                </div> -->
+            </div>
+        </div>
+
+        <!-- 統計表示画面 -->
+        <div id="statsScreen" class="screen">
+            <div class="screen-container">
+                <h2>ゲーム統計</h2>
+                <div class="stats-content screen-content" id="statsContent">
+                    <!-- 統計内容はJSで動的に生成 -->
+                </div>
+                <!-- [UX-1修正] 2行レイアウト: 主動線を1行目に配置し狭い画面でも崩れない -->
+                <div class="game-over-controls" style="display:flex;flex-direction:column;align-items:stretch;width:100%;box-sizing:border-box;gap:8px;padding:12px 16px;">
+                    <button id="restartFromStats" class="menu-btn start-btn" style="width:100%;">▶ もう一度遊ぶ</button>
+                    <div style="display:flex;gap:8px;">
+                        <button id="shareBtn" class="menu-btn share-btn" style="flex:1;">📢 シェア</button>
+                        <button id="backToTitleFromStats" class="menu-btn" style="flex:1;">タイトルへ戻る</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 格納庫画面 -->
+<div id="storageScreen" class="screen">
+    <div class="screen-container">
+
+        <!-- スティッキーヘッダー -->
+        <div class="storage-sticky-header">
+            <h2>📦 格納庫</h2>
+            <div class="resource-bar" id="storageResourceBar">
+                <span class="resource-bar-item"><span class="resource-bar-icon">⚙️</span><span id="resBarCommon">0</span></span>
+                <span class="resource-bar-item"><span class="resource-bar-icon">🔗</span><span id="resBarRare">0</span></span>
+                <span class="resource-bar-item"><span class="resource-bar-icon">💎</span><span id="resBarEpic">0</span></span>
+            </div>
+            <div class="shop-categories storage-tab-nav">
+                <button class="category-btn storage-tab active" data-tab="equipment">⚔️ 装備</button>
+                <button class="category-btn storage-tab" data-tab="ships">🚀 機体</button>
+                <button class="category-btn storage-tab" data-tab="buffs">✨ バフ</button>
+            </div>
+        </div>
+
+        <!-- スクロールエリア -->
+        <div class="storage-scroll-body">
+            <div class="storage-container">
+                <div class="storage-content">
+
+                    <!-- 装備タブ -->
+                    <div id="tab-equipment" class="storage-tab-content">
+                        <div class="category-header category-equipment" style="margin-bottom:14px;">
+                            <div class="category-icon">⚔️</div>
+                            <div class="category-title">装備品</div>
+                        </div>
+                        <div class="equip-slot-section">
+                            <div class="equip-slot-label">▸ 装備スロット（同時装備：1つ）</div>
+                            <div class="equip-slot" id="equipSlot">
+                                <div class="equip-slot-empty" id="equipSlotEmpty">
+                                    <div class="equip-slot-empty-icon">🔩</div>
+                                    <div class="equip-slot-empty-text">未装備</div>
+                                </div>
+                                <div class="equip-slot-filled" id="equipSlotFilled" style="display:none">
+                                    <div class="equip-slot-glow"></div>
+                                    <div class="equip-slot-icon" id="equipSlotIcon"></div>
+                                    <div class="equip-slot-info">
+                                        <div class="equip-slot-name" id="equipSlotName"></div>
+                                        <div class="equip-slot-desc" id="equipSlotDesc"></div>
+                                    </div>
+                                    <button class="equip-remove-btn" id="equipRemoveBtn">外す</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="equip-list-label" style="margin-top:18px;">▸ 装備改造</div>
+                        <div class="equip-cards-grid" id="equipItemsGrid">
+                            <!-- JavaScriptで動的に生成 -->
+                        </div>
+                    </div>
+
+                    <!-- 機体タブ -->
+                    <div id="tab-ships" class="storage-tab-content" style="display:none">
+                        <div class="category-header category-equipment" style="margin-bottom:14px;">
+                            <div class="category-icon">🚀</div>
+                            <div class="category-title">機体選択</div>
+                        </div>
+                        <div id="shipCardsGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;width:100%;box-sizing:border-box;">
+                            <!-- StorageSystem.renderShipTab() で動的生成 -->
+                        </div>
+                    </div>
+
+                    <!-- バフタブ -->
+                    <div id="tab-buffs" class="storage-tab-content" style="display:none">
+                        <!-- renderBuffTab() で動的生成 -->
+                    </div>
+
+                </div>
+            </div>
+        </div><!-- /storage-scroll-body -->
+
+        <!-- スティッキーフッター -->
+        <div class="storage-sticky-footer">
+            <button id="backFromStorage" class="back-btn">タイトルへ</button>
+        </div>
+
+    </div>
+</div>
+
+        <!-- ショップ画面-->
+        <div id="shopScreen" class="screen">
+    <div class="screen-container">
+        <h2>🛒 ショップ</h2>
+        <div class="screen-content">
+
+                <!-- 所持金表示 -->
+                <div class="shop-balance">
+                    <div class="balance-item">
+                        <span class="balance-icon">⚙️</span>
+                        <span class="balance-amount" id="balanceCommon">0</span>
+                    </div>
+                    <div class="balance-item">
+                        <span class="balance-icon">🔗</span>
+                        <span class="balance-amount" id="balanceRare">0</span>
+                    </div>
+                    <div class="balance-item">
+                        <span class="balance-icon">💎</span>
+                        <span class="balance-amount" id="balanceEpic">0</span>
+                    </div>
+                </div>
+
+                <!-- ▼▼▼ スクロール可能なコンテナを追加 ▼▼▼ -->
+                <div class="shop-scroll-container">
+                    <!-- カテゴリタブ -->
+                    <div class="shop-categories">
+                        <button class="category-btn active" data-category="upgrade">⚡ バフ</button>
+                        <button class="category-btn" data-category="consumable">🧪 消耗品</button>
+                    </div>
+
+                    <!-- アイテムグリッド -->
+                    <div class="shop-items-grid" id="shopItemsGrid">
+                        <!-- JavaScriptで動的に生成 -->
+                    </div>
+
+                    <!-- ▼▼▼ スクロールインジケーター ▼▼▼ -->
+                    <div class="scroll-hint" id="shopScrollHint">↓ スクロールして続きを表示 ↓</div>
+                    <!-- ▲▲▲ 追加終了 ▲▲▲ -->
+                </div>
+                <!-- ▲▲▲ スクロールコンテナ終了 ▲▲▲ -->
+        </div>
+        <div style="display:flex;gap:8px;">
+            <button id="shopToStorage" class="back-btn" style="flex:1">⚔️ 格納庫</button>
+            <button id="backFromShop" class="back-btn" style="flex:1">戻る</button>
+        </div>
+    </div>
+</div>
+
+        <!-- Infrastructure層 -->
+        <script src="./effects.js"></script>
+        <script src="./audio.js"></script>
+
+        <!-- Domain層 -->
+        <script src="./storage-system.js"></script>
+        <script src="./achievements.js"></script>
+        <script src="./shop-manager.js"></script>
+        <script src="./powerups.js"></script>
+        <script src="./entities.js"></script>
+        <script src="./player.js"></script>
+
+        <!-- App層 / Entry point -->
+        <script src="./script.js"></script>
+
+    </body>
+</html>
