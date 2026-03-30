@@ -505,6 +505,8 @@ const Wormholes = {
     },
 
     spawn(canvas) {
+        // 同時出現数を1個に制限（ボス連鎖の抑制）
+        if (this.wormholes.length >= 1) return;
         // サイズをcanvas幅の18〜25%に比例
         const size = canvas.width * (Math.random() * 0.07 + 0.18);
         const speed = canvas.height * (Math.random() * 0.004 + 0.002);

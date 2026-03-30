@@ -2042,7 +2042,7 @@ const Game = {
 
     // 現在の設定（変更可能）
     OBSTACLE_SPAWN_RATE: 0.005,
-    WORMHOLE_SPAWN_RATE: 0.001,
+    WORMHOLE_SPAWN_RATE: 0.0003,  // 出現頻度調整（旧: 0.001 → 30%に削減）
 
     WORMHOLE_BONUS: 500,
     BOSS_INTERVAL: 1500,   // ボス出現距離間隔（1500mごと）
