@@ -1212,6 +1212,35 @@ const UI = {
         }
     },
 
+    // トースト通知（武器解放など）
+    showToast(message, type = "info") {
+        // 既存トーストがあれば削除
+        const existing = document.getElementById("weaponUnlockToast");
+        if (existing) existing.remove();
+
+        const toast = document.createElement("div");
+        toast.id = "weaponUnlockToast";
+        const bgColor = type === "unlock" ? "linear-gradient(135deg,rgba(255,180,0,0.95),rgba(200,120,0,0.95))"
+                                          : "linear-gradient(135deg,rgba(0,180,255,0.95),rgba(0,100,200,0.95))";
+        toast.style.cssText = [
+            "position:fixed", "top:80px", "left:50%", "transform:translateX(-50%)",
+            "padding:12px 20px", "border-radius:12px",
+            `background:${bgColor}`,
+            "color:#fff", "font-size:0.95rem", "font-weight:700",
+            "box-shadow:0 4px 20px rgba(0,0,0,0.5)",
+            "z-index:9999", "pointer-events:none",
+            "animation:toastFadeIn 0.3s ease",
+            "white-space:nowrap"
+        ].join(";");
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.transition = "opacity 0.4s";
+            toast.style.opacity = "0";
+            setTimeout(() => toast.remove(), 400);
+        }, 2600);
+    },
+
     // 燃料切れ時のエフェクトを追加
     showFuelDepletionEffect() {
         const fuelDisplay = document.getElementById("fuelDisplay");
@@ -3158,6 +3187,15 @@ const Game = {
         // 燃料関連のタイマーをクリア
         this.clearFuelTimers();
 
+        // ゲームプレイ中にタイトルへ戻る場合、セッション武器距離を保存
+        if (window.StorageSystem && window.StorageSystem.equippedWeapon && this._sessionWeaponDistance > 0) {
+            window.StorageSystem.saveWeaponDistance(
+                window.StorageSystem.equippedWeapon.id,
+                this._sessionWeaponDistance
+            );
+        }
+        this._sessionWeaponDistance = 0;
+
         // 効果のクリーンアップ（シールド延長を保持）
         this.clearActiveEffects(true); // シールド延長を保持するフラグ
 
@@ -3334,6 +3372,11 @@ const Game = {
 
         // 距離の更新
         this.distance += 1;
+
+        // 装備中武器の累積飛行距離をメモリ上で累積（ゲームオーバー時に一括保存）
+        if (window.StorageSystem && window.StorageSystem.equippedWeapon) {
+            this._sessionWeaponDistance = (this._sessionWeaponDistance || 0) + 1;
+        }
 
         // スコア更新の競合防止（再帰呼び出し禁止・スキップのみ）
         if (this.isScoreUpdating) {
@@ -4121,6 +4164,15 @@ const Game = {
         // データ同期を確実に実行
         this.saveCumulativeStats();
 
+        // 武器別累積飛行距離を一括保存（セッション中はメモリ累積していた分）
+        if (window.StorageSystem && window.StorageSystem.equippedWeapon && this._sessionWeaponDistance > 0) {
+            window.StorageSystem.saveWeaponDistance(
+                window.StorageSystem.equippedWeapon.id,
+                this._sessionWeaponDistance
+            );
+            this._sessionWeaponDistance = 0;
+        }
+
         if (window.StorageSystem && window.StorageSystem.syncWithGameData) {
             window.StorageSystem.syncWithGameData();
             window.StorageSystem.saveStorage();
@@ -4208,6 +4260,9 @@ const Game = {
     // 直接ゲーム開始（バフスロット自動適用・v2.4.0〜）
     startGameDirectly() {
 
+        // セッション武器距離をリセット
+        this._sessionWeaponDistance = 0;
+
         // 装備中武器の効果を適用（毎ゲーム開始時に必ず設定）
         if (window.StorageSystem && window.Bullets) {
             const effect = window.StorageSystem.getEquippedWeaponEffect();
@@ -4268,6 +4323,25 @@ const Game = {
                     window.Bullets.homingLastTime    = 0;
                     window.Bullets.homingBullets     = [];
                 }
+                // ── Lv4/5 固有フラグ ──
+                window.Bullets.piercing         = effect.piercing         || false;
+                window.Bullets.spreadExtra      = effect.spreadExtra      || 0;
+                window.Bullets.splitBeam        = effect.splitBeam        || false;
+                window.Bullets.doubleBlast      = effect.doubleBlast      || false;
+                window.Bullets.reflect          = effect.reflect          || false;
+                window.Bullets.chainHoming      = effect.chain            || false;
+                window.Bullets.explode          = effect.explode          || false;
+                window.Bullets.bulletSpeedBonus = effect.bulletSpeedBonus || 0;
+            } else {
+                // 武器未装備時のリセット
+                window.Bullets.piercing         = false;
+                window.Bullets.spreadExtra      = 0;
+                window.Bullets.splitBeam        = false;
+                window.Bullets.doubleBlast      = false;
+                window.Bullets.reflect          = false;
+                window.Bullets.chainHoming      = false;
+                window.Bullets.explode          = false;
+                window.Bullets.bulletSpeedBonus = 0;
             }
         }
 

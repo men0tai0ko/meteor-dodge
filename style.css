@@ -2849,3 +2849,9 @@ html, body {
 .share-btn:active {
     background: linear-gradient(135deg, #0d6fa8, #0a5580);
 }
+
+/* トースト通知アニメーション（武器解放など） */
+@keyframes toastFadeIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}

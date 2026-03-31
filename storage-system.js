@@ -167,16 +167,21 @@ const StorageSystem = {
                 description: "同時に複数発射。レベルアップで増加",
                 price: { common: 0, rare: 20, epic: 0 },
                 levelPrices: [
-                    { common: 0, rare: 20, epic: 0 },
-                    { common: 0, rare: 40, epic: 0 },
-                    { common: 0, rare: 80, epic: 0 }
+                    { common: 0, rare: 20,  epic: 0 },
+                    { common: 0, rare: 40,  epic: 0 },
+                    { common: 0, rare: 80,  epic: 0 },
+                    { common: 0, rare: 160, epic: 0 },
+                    { common: 0, rare: 320, epic: 0 }
                 ],
                 levelEffects: [
-                    { burstCount: 2, fireFuelCost: 0.3, desc: "2連射" },
-                    { burstCount: 3, fireFuelCost: 0.5, desc: "3連射" },
-                    { burstCount: 4, fireFuelCost: 0.8, desc: "4連射" }
+                    { burstCount: 2, spreadExtra: 0,  fireFuelCost: 0.3, piercing: false, desc: "2連射" },
+                    { burstCount: 3, spreadExtra: 0,  fireFuelCost: 0.5, piercing: false, desc: "3連射" },
+                    { burstCount: 4, spreadExtra: 0,  fireFuelCost: 0.8, piercing: false, desc: "4連射" },
+                    { burstCount: 4, spreadExtra: 15, fireFuelCost: 1.0, piercing: false, desc: "4連射 + 拡散角+15°" },
+                    { burstCount: 4, spreadExtra: 15, fireFuelCost: 1.2, piercing: true,  desc: "4連射 + 拡散 + 貫通弾" }
                 ],
-                maxLevel: 3,
+                maxLevel: 5,
+                unlockLevel: { lv4: 500000, lv5: 1500000 },
                 usage: "equip"
             },
             laser_cannon: {
@@ -188,16 +193,21 @@ const StorageSystem = {
                 description: "照射中は通常弾なし。CD中に弾を撃つサイクル型",
                 price: { common: 0, rare: 0, epic: 3 },
                 levelPrices: [
-                    { common: 0, rare: 0, epic: 3 },
-                    { common: 0, rare: 0, epic: 6 },
-                    { common: 0, rare: 0, epic: 12 }
+                    { common: 0, rare: 0, epic: 3  },
+                    { common: 0, rare: 0, epic: 6  },
+                    { common: 0, rare: 0, epic: 12 },
+                    { common: 0, rare: 0, epic: 24 },
+                    { common: 0, rare: 0, epic: 48 }
                 ],
                 levelEffects: [
-                    { laserLevel: 1, fireDurationMs: 2000, cooldownMs: 3000, damagePerFrame: 1, laserFuelCost: 2, desc: "細い光線・2秒照射" },
-                    { laserLevel: 2, fireDurationMs: 3000, cooldownMs: 2000, damagePerFrame: 2, laserFuelCost: 3, desc: "太いビーム・3秒照射" },
-                    { laserLevel: 3, fireDurationMs: 4000, cooldownMs: 2000, damagePerFrame: 3, laserFuelCost: 5, desc: "3本束ビーム・4秒照射" }
+                    { laserLevel: 1, fireDurationMs: 2000, cooldownMs: 3000, damagePerFrame: 1, laserFuelCost: 2, splitBeam: false, desc: "細い光線・2秒照射" },
+                    { laserLevel: 2, fireDurationMs: 3000, cooldownMs: 2000, damagePerFrame: 2, laserFuelCost: 3, splitBeam: false, desc: "太いビーム・3秒照射" },
+                    { laserLevel: 3, fireDurationMs: 4000, cooldownMs: 2000, damagePerFrame: 3, laserFuelCost: 5, splitBeam: false, desc: "3本束ビーム・4秒照射" },
+                    { laserLevel: 4, fireDurationMs: 4000, cooldownMs: 1500, damagePerFrame: 4, laserFuelCost: 6, splitBeam: false, desc: "幅拡大ビーム + ダメージ+1" },
+                    { laserLevel: 5, fireDurationMs: 4000, cooldownMs: 1500, damagePerFrame: 4, laserFuelCost: 8, splitBeam: true,  desc: "分裂照射（計3本同時照射）" }
                 ],
-                maxLevel: 3,
+                maxLevel: 5,
+                unlockLevel: { lv4: 500000, lv5: 1500000 },
                 usage: "equip"
             },
             charge_shot: {
@@ -209,16 +219,21 @@ const StorageSystem = {
                 description: "溜め撃ちで全画面衝撃波。全隕石・ボスに一括ダメージ",
                 price: { common: 0, rare: 0, epic: 3 },
                 levelPrices: [
-                    { common: 0, rare: 0, epic: 3 },
-                    { common: 0, rare: 0, epic: 6 },
-                    { common: 0, rare: 0, epic: 12 }
+                    { common: 0, rare: 0, epic: 3  },
+                    { common: 0, rare: 0, epic: 6  },
+                    { common: 0, rare: 0, epic: 12 },
+                    { common: 0, rare: 0, epic: 24 },
+                    { common: 0, rare: 0, epic: 48 }
                 ],
                 levelEffects: [
-                    { chargeMs: 2000, cooldownMs: 4000, damage: 1, bossDamage: 2, fuelCost: 3, desc: "全隕石1ダメ / 溜め2秒 / CD4秒" },
-                    { chargeMs: 1500, cooldownMs: 3000, damage: 2, bossDamage: 3, fuelCost: 4, desc: "全隕石2ダメ / 溜め1.5秒 / CD3秒" },
-                    { chargeMs: 1000, cooldownMs: 2000, damage: 3, bossDamage: 5, fuelCost: 5, desc: "全隕石3ダメ・ボス5ダメ / 溜め1秒 / CD2秒" }
+                    { chargeMs: 2000, cooldownMs: 4000, damage: 1, bossDamage: 2, fuelCost: 3, doubleBlast: false, desc: "全隕石1ダメ / 溜め2秒 / CD4秒" },
+                    { chargeMs: 1500, cooldownMs: 3000, damage: 2, bossDamage: 3, fuelCost: 4, doubleBlast: false, desc: "全隕石2ダメ / 溜め1.5秒 / CD3秒" },
+                    { chargeMs: 1000, cooldownMs: 2000, damage: 3, bossDamage: 5, fuelCost: 5, doubleBlast: false, desc: "全隕石3ダメ・ボス5ダメ / 溜め1秒 / CD2秒" },
+                    { chargeMs:  800, cooldownMs: 2000, damage: 4, bossDamage: 6, fuelCost: 5, doubleBlast: false, desc: "溜め短縮 + ボス6ダメ" },
+                    { chargeMs:  800, cooldownMs: 2000, damage: 4, bossDamage: 6, fuelCost: 6, doubleBlast: true,  desc: "連続爆発（0.5秒後に追撃）" }
                 ],
-                maxLevel: 3,
+                maxLevel: 5,
+                unlockLevel: { lv4: 500000, lv5: 1500000 },
                 usage: "equip"
             },
             barrier_cannon: {
@@ -230,16 +245,21 @@ const StorageSystem = {
                 description: "前方バリアを常時展開。接触した隕石を即破壊",
                 price: { common: 0, rare: 0, epic: 3 },
                 levelPrices: [
-                    { common: 0, rare: 0, epic: 3 },
-                    { common: 0, rare: 0, epic: 6 },
-                    { common: 0, rare: 0, epic: 12 }
+                    { common: 0, rare: 0, epic: 3  },
+                    { common: 0, rare: 0, epic: 6  },
+                    { common: 0, rare: 0, epic: 12 },
+                    { common: 0, rare: 0, epic: 24 },
+                    { common: 0, rare: 0, epic: 48 }
                 ],
                 levelEffects: [
-                    { widthMul: 1.5, heightMul: 0.6, fireMs: 3000, cooldownMs: 5000, fuelPerSec: 1.5, desc: "幅1.5倍 / 展開3秒 / CD5秒" },
-                    { widthMul: 2.0, heightMul: 0.8, fireMs: 4000, cooldownMs: 4000, fuelPerSec: 2.0, desc: "幅2.0倍 / 展開4秒 / CD4秒" },
-                    { widthMul: 2.5, heightMul: 1.0, fireMs: 5000, cooldownMs: 3000, fuelPerSec: 2.5, desc: "幅2.5倍 / 展開5秒 / CD3秒" }
+                    { widthMul: 1.5, heightMul: 0.6, fireMs: 3000, cooldownMs: 5000, fuelPerSec: 1.5, reflect: false, desc: "幅1.5倍 / 展開3秒 / CD5秒" },
+                    { widthMul: 2.0, heightMul: 0.8, fireMs: 4000, cooldownMs: 4000, fuelPerSec: 2.0, reflect: false, desc: "幅2.0倍 / 展開4秒 / CD4秒" },
+                    { widthMul: 2.5, heightMul: 1.0, fireMs: 5000, cooldownMs: 3000, fuelPerSec: 2.5, reflect: false, desc: "幅2.5倍 / 展開5秒 / CD3秒" },
+                    { widthMul: 3.0, heightMul: 1.0, fireMs: 5000, cooldownMs: 2500, fuelPerSec: 2.0, reflect: false, desc: "幅拡大 + 展開中燃料消費削減" },
+                    { widthMul: 3.0, heightMul: 1.0, fireMs: 5000, cooldownMs: 2500, fuelPerSec: 2.0, reflect: true,  desc: "反射バリア（隕石を後方に弾き飛ばす）" }
                 ],
-                maxLevel: 3,
+                maxLevel: 5,
+                unlockLevel: { lv4: 500000, lv5: 1500000 },
                 usage: "equip"
             },
             homing_shot: {
@@ -251,16 +271,21 @@ const StorageSystem = {
                 description: "ボス・大型優先で自動追尾。外れにくい安定火力",
                 price: { common: 0, rare: 20, epic: 0 },
                 levelPrices: [
-                    { common: 0, rare: 20, epic: 0 },
-                    { common: 0, rare: 40, epic: 0 },
-                    { common: 0, rare: 80, epic: 0 }
+                    { common: 0, rare: 20,  epic: 0 },
+                    { common: 0, rare: 40,  epic: 0 },
+                    { common: 0, rare: 80,  epic: 0 },
+                    { common: 0, rare: 160, epic: 0 },
+                    { common: 0, rare: 320, epic: 0 }
                 ],
                 levelEffects: [
-                    { homingCount: 1, intervalMs: 1500, angleRange: 30, fuelCost: 0, desc: "追尾1発 / 1.5秒間隔" },
-                    { homingCount: 2, intervalMs: 1500, angleRange: 45, fuelCost: 0, desc: "追尾2発 / 1.5秒間隔" },
-                    { homingCount: 3, intervalMs: 1200, angleRange: 60, fuelCost: 0.2, desc: "追尾3発 / 1.2秒間隔" }
+                    { homingCount: 1, intervalMs: 1500, angleRange: 30, fuelCost: 0,   chain: false, desc: "追尾1発 / 1.5秒間隔" },
+                    { homingCount: 2, intervalMs: 1500, angleRange: 45, fuelCost: 0,   chain: false, desc: "追尾2発 / 1.5秒間隔" },
+                    { homingCount: 3, intervalMs: 1200, angleRange: 60, fuelCost: 0.2, chain: false, desc: "追尾3発 / 1.2秒間隔" },
+                    { homingCount: 4, intervalMs: 1000, angleRange: 60, fuelCost: 0.3, chain: false, desc: "追尾4発 + 追尾精度向上" },
+                    { homingCount: 4, intervalMs: 1000, angleRange: 60, fuelCost: 0.4, chain: true,  desc: "連鎖ホーミング（撃破後次ターゲットへ転移）" }
                 ],
-                maxLevel: 3,
+                maxLevel: 5,
+                unlockLevel: { lv4: 500000, lv5: 1500000 },
                 usage: "equip"
             },
             piercing_shot: {
@@ -272,16 +297,21 @@ const StorageSystem = {
                 description: "ボスへのダメージ増加。レベルアップで強化",
                 price: { common: 0, rare: 0, epic: 2 },
                 levelPrices: [
-                    { common: 0, rare: 0, epic: 2 },
-                    { common: 0, rare: 0, epic: 4 },
-                    { common: 0, rare: 0, epic: 8 }
+                    { common: 0, rare: 0, epic: 2  },
+                    { common: 0, rare: 0, epic: 4  },
+                    { common: 0, rare: 0, epic: 8  },
+                    { common: 0, rare: 0, epic: 16 },
+                    { common: 0, rare: 0, epic: 32 }
                 ],
                 levelEffects: [
-                    { bossDamage: 2, fireFuelCost: 0.2, desc: "ボスに2ダメージ/発" },
-                    { bossDamage: 3, fireFuelCost: 0.4, desc: "ボスに3ダメージ/発" },
-                    { bossDamage: 5, fireFuelCost: 0.7, desc: "ボスに5ダメージ/発" }
+                    { bossDamage: 2, fireFuelCost: 0.2, bulletSpeedBonus: 0, explode: false, desc: "ボスに2ダメージ/発" },
+                    { bossDamage: 3, fireFuelCost: 0.4, bulletSpeedBonus: 0, explode: false, desc: "ボスに3ダメージ/発" },
+                    { bossDamage: 5, fireFuelCost: 0.7, bulletSpeedBonus: 0, explode: false, desc: "ボスに5ダメージ/発" },
+                    { bossDamage: 6, fireFuelCost: 0.9, bulletSpeedBonus: 4, explode: false, desc: "ボスに6ダメ + 弾速上昇" },
+                    { bossDamage: 6, fireFuelCost: 1.1, bulletSpeedBonus: 4, explode: true,  desc: "爆発弾（着弾時周囲の隕石にもダメージ）" }
                 ],
-                maxLevel: 3,
+                maxLevel: 5,
+                unlockLevel: { lv4: 500000, lv5: 1500000 },
                 usage: "equip"
             }
         },
@@ -361,6 +391,20 @@ const StorageSystem = {
 
         if (currentLevel >= weapon.maxLevel) return { success: false, reason: "最大レベル到達済み" };
 
+        // Lv4/5 の解放条件チェック
+        const targetLevel = currentLevel + 1;
+        if (weapon.unlockLevel) {
+            const requiredDist = targetLevel >= 5 ? weapon.unlockLevel.lv5
+                               : targetLevel >= 4 ? weapon.unlockLevel.lv4
+                               : 0;
+            if (requiredDist > 0) {
+                const actual = this._getWeaponDistance(itemId);
+                if (actual < requiredDist) {
+                    return { success: false, reason: `未解放（${itemId} 累積${requiredDist.toLocaleString()}km到達で解放）` };
+                }
+            }
+        }
+
         const price = weapon.levelPrices[currentLevel];
 
         if (this.resources.common < (price.common || 0) ||
@@ -397,6 +441,89 @@ const StorageSystem = {
 
         this.saveStorage();
         return { success: true, newLevel };
+    },
+
+    // 武器別累積飛行距離を取得
+    _getWeaponDistance(weaponId) {
+        try {
+            const data = localStorage.getItem("weaponDistances");
+            if (!data) return 0;
+            const parsed = JSON.parse(data);
+            return parsed[weaponId] || 0;
+        } catch (e) {
+            return 0;
+        }
+    },
+
+    // 武器別累積飛行距離を保存
+    saveWeaponDistance(weaponId, distance) {
+        try {
+            const data = localStorage.getItem("weaponDistances");
+            const parsed = data ? JSON.parse(data) : {};
+            parsed[weaponId] = (parsed[weaponId] || 0) + distance;
+            localStorage.setItem("weaponDistances", JSON.stringify(parsed));
+            // 解放チェック
+            this._checkWeaponUnlock(weaponId, parsed[weaponId]);
+        } catch (e) {}
+    },
+
+    // 解放条件チェック（到達時に通知）
+    _checkWeaponUnlock(weaponId, totalDist) {
+        const weapon = this.shopItems.upgrades[weaponId];
+        if (!weapon || !weapon.unlockLevel) return;
+
+        const owned = this.items.find(i => i.id === weaponId);
+        const currentLevel = owned ? (owned.level || 1) : 0;
+
+        // Lv4解放チェック
+        if (currentLevel < 4 && totalDist >= weapon.unlockLevel.lv4) {
+            const prev = this._getUnlockNotified(weaponId, 4);
+            if (!prev) {
+                this._setUnlockNotified(weaponId, 4);
+                if (window.UI && window.UI.showToast) {
+                    window.UI.showToast(`🔓 ${weapon.name} Lv4 解放！`, "unlock");
+                }
+            }
+        }
+        // Lv5解放チェック
+        if (currentLevel < 5 && totalDist >= weapon.unlockLevel.lv5) {
+            const prev = this._getUnlockNotified(weaponId, 5);
+            if (!prev) {
+                this._setUnlockNotified(weaponId, 5);
+                if (window.UI && window.UI.showToast) {
+                    window.UI.showToast(`🔓 ${weapon.name} Lv5 解放！`, "unlock");
+                }
+            }
+        }
+    },
+
+    _getUnlockNotified(weaponId, lv) {
+        try {
+            const data = JSON.parse(localStorage.getItem("weaponUnlockNotified") || "{}");
+            return data[`${weaponId}_lv${lv}`] || false;
+        } catch (e) { return false; }
+    },
+
+    _setUnlockNotified(weaponId, lv) {
+        try {
+            const data = JSON.parse(localStorage.getItem("weaponUnlockNotified") || "{}");
+            data[`${weaponId}_lv${lv}`] = true;
+            localStorage.setItem("weaponUnlockNotified", JSON.stringify(data));
+        } catch (e) {}
+    },
+
+    // 武器の解放状態を取得（UI表示用）
+    getWeaponUnlockStatus(weaponId) {
+        const weapon = this.shopItems.upgrades[weaponId];
+        if (!weapon || !weapon.unlockLevel) return { lv4: true, lv5: true };
+        const dist = this._getWeaponDistance(weaponId);
+        return {
+            lv4: dist >= weapon.unlockLevel.lv4,
+            lv5: dist >= weapon.unlockLevel.lv5,
+            dist,
+            lv4Required: weapon.unlockLevel.lv4,
+            lv5Required: weapon.unlockLevel.lv5
+        };
     },
 
     // 装備を付ける
@@ -442,11 +569,20 @@ const StorageSystem = {
         const base = weapon.levelEffects[lv];
         // 武器種別にレベル情報を付加
         const extra = {};
-        if (weapon.id === "charge_shot")   extra.chargeLevel  = lv + 1;
-        if (weapon.id === "barrier_cannon") extra.barrierLevel = lv + 1;
-        if (weapon.id === "homing_shot")   extra.homingLevel  = lv + 1;
+        if (weapon.id === "charge_shot")    extra.chargeLevel   = lv + 1;
+        if (weapon.id === "barrier_cannon") extra.barrierLevel  = lv + 1;
+        if (weapon.id === "homing_shot")    extra.homingLevel   = lv + 1;
         // bossDamage2 はチャージショットのボスダメージ（bossDamageと名前衝突回避）
-        if (weapon.id === "charge_shot")   extra.bossDamage2  = base.bossDamage;
+        if (weapon.id === "charge_shot")    extra.bossDamage2   = base.bossDamage;
+        // Lv4/5 固有フラグ
+        if (weapon.id === "rapid_fire")     extra.piercing      = base.piercing      || false;
+        if (weapon.id === "rapid_fire")     extra.spreadExtra   = base.spreadExtra   || 0;
+        if (weapon.id === "laser_cannon")   extra.splitBeam     = base.splitBeam     || false;
+        if (weapon.id === "charge_shot")    extra.doubleBlast   = base.doubleBlast   || false;
+        if (weapon.id === "barrier_cannon") extra.reflect       = base.reflect       || false;
+        if (weapon.id === "homing_shot")    extra.chain         = base.chain         || false;
+        if (weapon.id === "piercing_shot")  extra.explode       = base.explode       || false;
+        if (weapon.id === "piercing_shot")  extra.bulletSpeedBonus = base.bulletSpeedBonus || 0;
         return { id: this.equippedWeapon.id, ...base, ...extra };
     },
 
@@ -1723,8 +1859,15 @@ const StorageSystem = {
             const isEquipped = this.equippedWeapon?.id === weapon.id;
             const nextLevel = currentLevel + 1;
             const canLevelUp = currentLevel < weapon.maxLevel;
+
+            // 解放状態チェック（Lv4/5が必要な場合）
+            const unlockStatus = this.getWeaponUnlockStatus(weapon.id);
+            const isNextLevelLocked = canLevelUp &&
+                ((nextLevel === 4 && !unlockStatus.lv4) ||
+                 (nextLevel === 5 && !unlockStatus.lv5));
+
             const price = canLevelUp ? weapon.levelPrices[currentLevel] : null;
-            const canAfford = price &&
+            const canAfford = !isNextLevelLocked && price &&
                 this.resources.common >= (price.common || 0) &&
                 this.resources.rare   >= (price.rare   || 0) &&
                 this.resources.epic   >= (price.epic   || 0);
@@ -1768,20 +1911,41 @@ const StorageSystem = {
                 : weapon.levelEffects[0].desc;
 
             // 価格表示（未所持: Lv1価格、所持済み: 次レベル価格 or MAX）
-            const priceToShow = currentLevel === 0
-                ? weapon.levelPrices[0]
-                : (canLevelUp ? weapon.levelPrices[currentLevel] : null);
-            const priceHtml = priceToShow
-                ? (priceToShow.rare  > 0 ? `<span class="equip-price-item">🔗${priceToShow.rare}</span>` : "") +
-                  (priceToShow.epic  > 0 ? `<span class="equip-price-item">💎${priceToShow.epic}</span>` : "") +
-                  (priceToShow.common> 0 ? `<span class="equip-price-item">⚙️${priceToShow.common}</span>` : "")
-                : (currentLevel > 0 ? `<div class="equip-max-badge">MAX</div>` : "");
+            // ロック中の場合は解放条件を表示
+            let priceHtml = "";
+            if (isNextLevelLocked) {
+                const reqDist = nextLevel >= 5 ? unlockStatus.lv5Required : unlockStatus.lv4Required;
+                const actual  = unlockStatus.dist;
+                const pct     = Math.min(100, Math.floor(actual / reqDist * 100));
+                priceHtml =
+                    `<div style="font-size:0.72rem;color:#FFAA44;margin-bottom:2px">🔒 Lv${nextLevel} ロック中</div>` +
+                    `<div style="font-size:0.68rem;color:#8899AA">${actual.toLocaleString()} / ${reqDist.toLocaleString()} km</div>` +
+                    `<div style="width:100%;height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-top:3px">` +
+                    `<div style="width:${pct}%;height:100%;background:linear-gradient(90deg,#FF8800,#FFD700);border-radius:2px"></div></div>`;
+            } else {
+                const priceToShow = currentLevel === 0
+                    ? weapon.levelPrices[0]
+                    : (canLevelUp ? weapon.levelPrices[currentLevel] : null);
+                priceHtml = priceToShow
+                    ? (priceToShow.rare  > 0 ? `<span class="equip-price-item">🔗${priceToShow.rare}</span>` : "") +
+                      (priceToShow.epic  > 0 ? `<span class="equip-price-item">💎${priceToShow.epic}</span>` : "") +
+                      (priceToShow.common> 0 ? `<span class="equip-price-item">⚙️${priceToShow.common}</span>` : "")
+                    : (currentLevel > 0 ? `<div class="equip-max-badge">MAX</div>` : "");
+            }
 
             // アクションボタン
             let actionHtml = "";
             if (currentLevel === 0) {
                 // 未所持 → 購入ボタン
                 actionHtml = `<button class="equip-btn equip-btn-buy${canAfford ? "" : " disabled"}"${canAfford ? "" : " disabled"}>購入</button>`;
+            } else if (isNextLevelLocked && canLevelUp) {
+                // ロック中 → 強化ボタンをロック表示
+                if (isEquipped) {
+                    actionHtml = `<button class="equip-btn equip-btn-remove">外す</button>`;
+                } else {
+                    actionHtml = `<button class="equip-btn equip-btn-equip">装備</button>`;
+                }
+                actionHtml += `<button class="equip-btn equip-btn-upgrade disabled" disabled>🔒 強化</button>`;
             } else if (isEquipped) {
                 // 装備中 → 外す＋レベルアップ
                 actionHtml = `<button class="equip-btn equip-btn-remove">外す</button>`;
@@ -1806,7 +1970,7 @@ const StorageSystem = {
             // ボタンイベント
             const equipBtn   = card.querySelector(".equip-btn-equip");
             const removeBtn  = card.querySelector(".equip-btn-remove");
-            const upgradeBtn = card.querySelector(".equip-btn-upgrade");
+            const upgradeBtn = card.querySelector(".equip-btn-upgrade:not(.disabled)");
             const buyBtn     = card.querySelector(".equip-btn-buy");
 
             if (equipBtn)   equipBtn.onclick   = () => { this.equipWeapon(weapon.id);        this.renderEquipTab(); };

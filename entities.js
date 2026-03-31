@@ -273,6 +273,18 @@ const Obstacles = {
         for (let i = this.obstacles.length - 1; i >= 0; i--) {
             this.obstacles[i].y += this.obstacles[i].speed;
 
+            // 反射バリアで上方向に飛び出した隕石を除去（メモリリーク防止）
+            if (this.obstacles[i].speed < 0 && this.obstacles[i].y + this.obstacles[i].height < 0) {
+                this.obstacles.splice(i, 1);
+                continue;
+            }
+
+            // 反射直後の衝突猶予（reflectFramesが残っている間は衝突判定スキップ）
+            if (this.obstacles[i].reflectFrames > 0) {
+                this.obstacles[i].reflectFrames--;
+                continue;
+            }
+
             // 衝突判定を詳細にログ出力
             const isColliding = this.checkCollision(playerBounds, this.obstacles[i]);
 
@@ -707,6 +719,18 @@ const Bullets = {
     homingLastTime: 0,
     homingBullets: [],           // ホーミング弾専用配列
 
+    // ── Lv4/5 固有フラグ ──
+    piercing: false,             // 連射弾Lv5: 貫通弾
+    spreadExtra: 0,              // 連射弾Lv4: 拡散角追加(度)
+    splitBeam: false,            // レーザーLv5: 分裂照射
+    doubleBlast: false,          // チャージLv5: 連続爆発
+    doubleBlastPending: false,   // 連続爆発の追撃待ち状態
+    doubleBlastTimer: 0,         // 追撃タイマー
+    reflect: false,              // バリアLv5: 反射バリア
+    chainHoming: false,          // ホーミングLv5: 連鎖追尾
+    explode: false,              // 強化弾Lv5: 爆発弾
+    bulletSpeedBonus: 0,         // 強化弾Lv4: 弾速ボーナス
+
     init() {
         this.bullets = [];
         this.lastFireTime = 0;
@@ -739,6 +763,8 @@ const Bullets = {
         this.barrierLastTime = Date.now();
         this.barrierState = "cooldown";
         this.homingLastTime = 0;
+        this.doubleBlastPending = false;
+        this.doubleBlastTimer = 0;
     },
 
     // 射撃システムの有効/無効切り替え
@@ -759,10 +785,15 @@ const Bullets = {
 
         // 広がり角度：弾数に応じて均等に分散
         // count=1: 0deg、count=2: -8/+8、count=3: -10/0/+10、count=4: -15/-5/+5/+15
-        const spread = count === 1 ? [0]
+        // spreadExtra(Lv4): 各角度にさらに広げる
+        const extra = this.spreadExtra || 0;
+        const baseSpread = count === 1 ? [0]
             : count === 2 ? [-8, 8]
             : count === 3 ? [-10, 0, 10]
             : [-15, -5, 5, 15];
+        const spread = baseSpread.map(deg => deg + (deg >= 0 ? extra : -extra));
+
+        const baseSpeed = 8 + (this.bulletSpeedBonus || 0);
 
         spread.forEach((deg, i) => {
             const rad = deg * Math.PI / 180;
@@ -771,9 +802,10 @@ const Bullets = {
                 y: playerY,
                 width: 4,
                 height: 8,
-                speed: 8,
+                speed: baseSpeed,
                 vx: Math.sin(rad) * 2,  // 横方向の速度成分
-                active: true
+                active: true,
+                piercing: this.piercing || false  // 貫通フラグ
             };
             this.bullets.push(bullet);
         });
@@ -887,10 +919,19 @@ const Bullets = {
                 if (this.checkCollision(bullet, obstacle)) {
                     // 衝突処理
                     this.handleBulletHit(bullet, obstacle);
-                    this.bullets.splice(i, 1);
-                    window.Obstacles.obstacles.splice(j, 1);
-                    hitObstacle = true;
 
+                    // 爆発弾（強化弾Lv5）: 着弾隕石の周囲1隕石にも範囲ダメージ
+                    if (this.explode) {
+                        this._applyExplosion(obstacle, j);
+                    }
+
+                    window.Obstacles.obstacles.splice(j, 1);
+
+                    // 貫通弾（連射弾Lv5）: 弾を消費せず次の隕石にも当たる
+                    if (!bullet.piercing) {
+                        this.bullets.splice(i, 1);
+                        hitObstacle = true;
+                    }
                     // 回避カウントを増加（隕石破壊も回避とみなす）
                     if (window.Game && typeof window.Game.incrementDodgeCount === "function") {
                         window.Game.incrementDodgeCount();
@@ -948,8 +989,24 @@ const Bullets = {
                         const ob = window.Obstacles.obstacles[j];
                         if (hb.x < ob.x+ob.width && hb.x+hb.size > ob.x && hb.y < ob.y+ob.height && hb.y+hb.size > ob.y) {
                             this.handleBulletHit(hb, ob);
-                            this.homingBullets.splice(i, 1);
                             window.Obstacles.obstacles.splice(j, 1);
+                            // 連鎖ホーミング（Lv5）: 撃破後に次ターゲットへ転移
+                            if (this.chainHoming) {
+                                const nextTarget = this._findHomingTarget();
+                                if (nextTarget) {
+                                    hb.target = nextTarget;
+                                    const tx = nextTarget.x + nextTarget.width  / 2;
+                                    const ty = nextTarget.y + nextTarget.height / 2;
+                                    const dx = tx - hb.x, dy = ty - hb.y;
+                                    const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+                                    hb.vx = (dx / dist) * hb.speed;
+                                    hb.vy = (dy / dist) * hb.speed;
+                                    // 弾を消費しない（転移）→ spliceせずbreakのみ
+                                    break;
+                                }
+                            }
+                            // 転移先なし、または連鎖なし → 通常通り弾を削除
+                            this.homingBullets.splice(i, 1);
                             hit = true;
                             break;
                         }
@@ -969,6 +1026,11 @@ const Bullets = {
                 this._releaseCharge();
                 this.chargeState = "cooldown";
                 this.chargeTimer = 0;
+                // doubleBlast（Lv5）: 0.5秒後に追撃
+                if (this.doubleBlast) {
+                    this.doubleBlastPending = true;
+                    this.doubleBlastTimer = 0;
+                }
             } else if (this.chargeState === "cooldown" && this.chargeTimer >= this.chargeCooldownMs) {
                 // cooldown終了 → すぐchargingに入る
                 this.chargeState = "charging";
@@ -978,6 +1040,14 @@ const Bullets = {
             if (this.chargeState === "ready") {
                 this.chargeState = "charging";
                 this.chargeTimer = 0;
+            }
+            // doubleBlast追撃処理
+            if (this.doubleBlastPending) {
+                this.doubleBlastTimer += elapsed3;
+                if (this.doubleBlastTimer >= 500) {
+                    this._releaseCharge();
+                    this.doubleBlastPending = false;
+                }
             }
         }
 
@@ -990,8 +1060,12 @@ const Bullets = {
             if (this.barrierState === "active") {
                 // 燃料消費
                 if (window.Player) window.Player.consumeFuel(this.barrierFuelPerSec * elapsed4 / 1000);
-                // 衝突判定
-                this._barrierCollide();
+                // 衝突判定（reflect有無で分岐）
+                if (this.reflect) {
+                    this._barrierReflect();
+                } else {
+                    this._barrierCollide();
+                }
                 if (this.barrierTimer >= this.barrierFireMs) {
                     this.barrierState = "cooldown";
                     this.barrierTimer = 0;
@@ -1088,6 +1162,62 @@ const Bullets = {
                 this.handleBulletHit({x: ob.x, y: ob.y, width: ob.width, height: ob.height}, ob);
                 window.Obstacles.obstacles.splice(i, 1);
                 if (window.Particles) window.Particles.createEffect(ob.x+ob.width/2, ob.y+ob.height/2, "#00FFCC", "bulletHit");
+            }
+        }
+    },
+
+    // バリアLv5: 反射バリア（隕石を破壊せず後方に押し返す）
+    _barrierReflect() {
+        if (!window.Obstacles || !window.Player) return;
+        const pb = window.Player.getBounds();
+        const canvas = window.Game && window.Game.canvas;
+        const cw = canvas ? canvas.width  : 400;
+        const ch = canvas ? canvas.height : 700;
+        const bw = cw * (0.25 + (this.barrierWidthMul - 1.5) * 0.1);
+        const bh = ch * 0.10;
+        const bx = pb.x + pb.width/2 - bw/2;
+        const by = pb.y - bh - pb.height * 0.3;
+        for (let i = window.Obstacles.obstacles.length - 1; i >= 0; i--) {
+            const ob = window.Obstacles.obstacles[i];
+            if (ob.x < bx+bw && ob.x+ob.width > bx && ob.y < by+bh && ob.y+ob.height > by) {
+                // 速度を反転して後方へ弾き飛ばす（除去はObstacles.update()側で行う）
+                ob.speed = -(Math.abs(ob.speed || 2) + 1);
+                ob.reflected = true;         // 反射フラグ（衝突判定猶予用）
+                ob.reflectFrames = 10;       // 10フレーム間は衝突判定を無効化
+                if (window.Particles) window.Particles.createEffect(ob.x+ob.width/2, ob.y+ob.height/2, "#44FFFF", "bulletHit");
+            }
+        }
+    },
+
+    // 強化弾Lv5: 爆発弾（着弾位置の周囲で最も近い隕石1体にも追加ダメージ）
+    _applyExplosion(sourceObstacle, sourceIndex) {
+        if (!window.Obstacles) return;
+        const cx = sourceObstacle.x + sourceObstacle.width  / 2;
+        const cy = sourceObstacle.y + sourceObstacle.height / 2;
+        const EXPLOSION_RADIUS = 80;
+        let nearest = null;
+        let nearestDist = Infinity;
+        let nearestIdx = -1;
+
+        for (let i = window.Obstacles.obstacles.length - 1; i >= 0; i--) {
+            if (i === sourceIndex) continue; // 元の隕石は既に処理済み
+            const ob = window.Obstacles.obstacles[i];
+            const dx = (ob.x + ob.width  / 2) - cx;
+            const dy = (ob.y + ob.height / 2) - cy;
+            const d  = Math.sqrt(dx*dx + dy*dy);
+            if (d < EXPLOSION_RADIUS && d < nearestDist) {
+                nearestDist = d;
+                nearest = ob;
+                nearestIdx = i;
+            }
+        }
+
+        if (nearest !== null && nearestIdx >= 0) {
+            this.handleBulletHit({x: nearest.x, y: nearest.y, width: nearest.width, height: nearest.height}, nearest);
+            window.Obstacles.obstacles.splice(nearestIdx, 1);
+            if (window.Particles) window.Particles.createEffect(nearest.x+nearest.width/2, nearest.y+nearest.height/2, "#FF6600", "bulletHit");
+            if (window.UI && window.UI.showFloatingText) {
+                window.UI.showFloatingText("💥", nearest.x+nearest.width/2, nearest.y, "#FF6600");
             }
         }
     },
@@ -1394,7 +1524,16 @@ const Bullets = {
         // Lv1: 細い光線2px → 幅3
         // Lv2: 太いビーム → 幅10
         // Lv3: 3本束（±10px） → 中心±14でカバー
-        const beamHalfW = this.laserLevel === 1 ? 3 : this.laserLevel === 2 ? 10 : 14;
+        // Lv4: 幅拡大 → 幅18
+        // Lv5: splitBeam（中心+斜め2本）→ 幅18、斜めビームはoffset±60px
+        const beamHalfW = this.laserLevel <= 1 ? 3
+                        : this.laserLevel === 2 ? 10
+                        : this.laserLevel === 3 ? 14 : 18;
+
+        // splitBeam(Lv5)のビームX座標リスト（中心+左右斜め）
+        const beamCenters = this.splitBeam
+            ? [cx, cx - 60, cx + 60]
+            : [cx];
 
         // 通常隕石へのダメージ
         if (window.Obstacles && window.Obstacles.obstacles) {
@@ -1402,8 +1541,8 @@ const Bullets = {
                 const ob = window.Obstacles.obstacles[i];
                 const obCx = ob.x + ob.width / 2;
                 const hitRange = ob.width / 2 + beamHalfW;
-                // ビームは画面上端〜プレイヤー位置を照射 → 隕石がその範囲内にあれば当たる
-                if (Math.abs(obCx - cx) < hitRange && ob.y < playerBounds.y && ob.y + ob.height > 0) {
+                const inBeam = beamCenters.some(bcx => Math.abs(obCx - bcx) < hitRange);
+                if (inBeam && ob.y < playerBounds.y && ob.y + ob.height > 0) {
                     window.Obstacles.obstacles.splice(i, 1);
                     if (window.Game && window.Game.gameRunning) {
                         window.Game.sessionBulletDestructionCount = (window.Game.sessionBulletDestructionCount || 0) + 1;
@@ -1427,7 +1566,8 @@ const Bullets = {
             const b = window.Obstacles.boss;
             const bCx = b.x + b.width / 2;
             const bossHitRange = b.width / 2 + beamHalfW;
-            if (Math.abs(bCx - cx) < bossHitRange && b.y < playerBounds.y && b.y + b.height > 0) {
+            const bossInBeam = beamCenters.some(bcx => Math.abs(bCx - bcx) < bossHitRange);
+            if (bossInBeam && b.y < playerBounds.y && b.y + b.height > 0) {
                 b.hp -= dmg;
                 b.hitFlash = 3;
                 if (b.hp <= 0) {
@@ -1531,6 +1671,48 @@ const Bullets = {
                 ctx.lineWidth = 1;
                 ctx.beginPath(); ctx.moveTo(cx + off, originY); ctx.lineTo(cx + off, 0); ctx.stroke();
             });
+
+            // Lv4: 幅拡大ビーム（シアン）
+            if (this.laserLevel >= 4) {
+                ctx.shadowColor = "#00FFEE";
+                ctx.shadowBlur = 25;
+                ctx.strokeStyle = "rgba(0,255,220,0.2)";
+                ctx.lineWidth = 28;
+                ctx.beginPath(); ctx.moveTo(cx, originY); ctx.lineTo(cx, 0); ctx.stroke();
+                ctx.strokeStyle = "#00FFCC";
+                ctx.lineWidth = 8;
+                ctx.beginPath(); ctx.moveTo(cx, originY); ctx.lineTo(cx, 0); ctx.stroke();
+                ctx.strokeStyle = "#EEFFFF";
+                ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(cx, originY); ctx.lineTo(cx, 0); ctx.stroke();
+            }
+
+            // Lv5: 分裂照射（左右斜め2本追加）
+            if (this.splitBeam) {
+                const splitOffsets = [-60, 60];
+                splitOffsets.forEach(off => {
+                    ctx.shadowColor = "#FF44FF";
+                    ctx.shadowBlur = 15;
+                    ctx.strokeStyle = "rgba(255,0,255,0.2)";
+                    ctx.lineWidth = 12;
+                    ctx.beginPath();
+                    ctx.moveTo(cx, originY);
+                    ctx.lineTo(cx + off, 0);
+                    ctx.stroke();
+                    ctx.strokeStyle = "#FF66FF";
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.moveTo(cx, originY);
+                    ctx.lineTo(cx + off, 0);
+                    ctx.stroke();
+                    ctx.strokeStyle = "#FFCCFF";
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(cx, originY);
+                    ctx.lineTo(cx + off, 0);
+                    ctx.stroke();
+                });
+            }
         }
 
         // 照射中フラッシュ（画面端に周期的な光）
