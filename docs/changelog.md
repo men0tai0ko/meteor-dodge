@@ -2,6 +2,50 @@
 
 ---
 
+## v2.4.2 — 2026-03-30
+
+### バグ修正・機能復元
+
+- **DOM消失の修正（遊び方画面更新の副作用）**
+  - 遊び方画面更新時に旧バージョン(v2.4.0)のindex.htmlをベースにしたため、v2.4.1で追加したDOM要素が消失していた
+  - `id="titleBestScore"` / `id="titleBestScoreValue"`（タイトル画面ベスト表示）を復元
+  - `id="shareBtn"` + 2行ボタンレイアウト（statsScreen）を復元
+  - CSS（`.title-best-score` / `.share-btn` / `.stats-new-record` / `.stats-prev-best` / `@keyframes newRecordPulse`）を復元
+
+- **`_handleShare()` の SyntaxError修正（生LF混入）**
+  - `const text` 変数内に生の改行コードが埋め込まれていたため `\n` エスケープに修正
+
+- **SNSシェアのURLを本番URLに設定**
+  - `SHARE_URL: null` → `"https://men0tai0ko.github.io/meteor-dodge/"`
+
+### バランス調整
+
+- **ワームホール出現頻度の削減**
+  - `WORMHOLE_SPAWN_RATE`: `0.001` → `0.0003`（旧比30%）
+  - `Wormholes.spawn()` に同時出現数上限を追加（最大1個）
+  - 理由：頻発する距離ボーナスでボスが過剰出現していた
+
+### コード品質
+
+- **未使用関数の削除（script.js: 372行削減 / 5,467行 → 5,095行）**
+  - `animateScoreUpdate` / `showScoreUpdateEffect`（v2.1.1廃止済み）
+  - `showDetailedMiningStats`（呼び出し元なし）
+  - `showPreGamePreparation` 関連9関数（v2.4.0廃止済みモーダル）
+  - `addDebugEffect` / `debugBulletStats`（デバッグ専用・未使用）
+
+### UX改善
+
+- **「遊び方」画面をv2.4.1仕様に全面更新**
+  - 追加セクション: 燃料システム / 採掘システム / ボス隕石 / 格納庫の説明
+  - スコア説明の誤記修正:「飛行距離が長いほど高得点」→「飛行距離はスコアに含まれない」
+
+### ドキュメント整備
+
+- `spec.md` を v2.0 → v2.4.1 に全面更新（§11〜19 再構成、廃止仕様に注記追加）
+- `handover.md` / `todo.md` / `README.md` を新体制に再構成
+
+---
+
 ## v2.4.0 — 2026-03-30
 
 ### バグ修正
