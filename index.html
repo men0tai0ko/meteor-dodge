@@ -25,10 +25,34 @@
 
                 <div class="menu-buttons">
                     <button id="startBtnTitle" class="menu-btn start-btn">ゲームスタート</button>
-                    <button id="storageBtn" class="menu-btn">格納庫</button>
-                        <button id="howToPlayBtn" class="menu-btn">遊び方</button>
-                    <button id="settingsBtn" class="menu-btn">設定</button>
-                    <button id="achievementsBtn" class="menu-btn">実績</button>
+
+                    <div class="difficulty-row">
+                        <label class="difficulty-label" for="difficultySelect">難易度</label>
+                        <select id="difficultySelect" class="difficulty-select">
+                            <option value="normal" selected>NORMAL</option>
+                            <option value="easy">EASY</option>
+                            <option value="hard">HARD</option>
+                        </select>
+                    </div>
+
+                    <div class="icon-buttons">
+                        <button id="storageBtn" class="menu-btn icon-btn">
+                            <span class="icon-btn-icon">📦</span>
+                            <span class="icon-btn-label">格納庫</span>
+                        </button>
+                        <button id="howToPlayBtn" class="menu-btn icon-btn">
+                            <span class="icon-btn-icon">❓</span>
+                            <span class="icon-btn-label">遊び方</span>
+                        </button>
+                        <button id="settingsBtn" class="menu-btn icon-btn">
+                            <span class="icon-btn-icon">⚙️</span>
+                            <span class="icon-btn-label">設定</span>
+                        </button>
+                        <button id="achievementsBtn" class="menu-btn icon-btn">
+                            <span class="icon-btn-icon">🏆</span>
+                            <span class="icon-btn-label">実績</span>
+                        </button>
+                    </div>
                 </div>
 <!--
                 <div class="quick-instruction">

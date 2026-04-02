@@ -167,6 +167,75 @@ html, body {
     box-shadow: 0 0 12px rgba(0,255,136,0.3);
 }
 
+/* 難易度プルダウン行 */
+.difficulty-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.difficulty-label {
+    font-size: 0.85rem;
+    color: #aaccee;
+    white-space: nowrap;
+}
+
+.difficulty-select {
+    flex: 1;
+    max-width: 180px;
+    padding: 7px 28px 7px 12px;
+    background-color: rgba(0, 20, 50, 0.85);
+    color: #cce8ff;
+    border: 1.5px solid #00ffff;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2300ffff'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.difficulty-select:focus {
+    outline: none;
+    box-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
+}
+
+/* アイコンボタン行 */
+.icon-buttons {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    justify-content: center;
+}
+
+.icon-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 4px;
+}
+
+.icon-btn-icon {
+    font-size: 1.3rem;
+    line-height: 1;
+}
+
+.icon-btn-label {
+    font-size: 0.62rem;
+    line-height: 1;
+    opacity: 0.9;
+}
+
 /* ===== ゲーム画面 ===== */
 #gameScreen {
     background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);

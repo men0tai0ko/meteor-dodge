@@ -1,8 +1,8 @@
 # 引き継ぎドキュメント：隕石を回避せよ ワームホールアドベンチャー
 
-**作成日**: 2026-03-31
-**対象バージョン**: v2.5.0
-**引き継ぎ元**: F-25/F-26実装・バグ修正5件セッション
+**作成日**: 2026-04-02
+**対象バージョン**: v2.6.0
+**引き継ぎ元**: F-10/F-21実装（難易度選択・タイトルUIアイコン化）セッション
 
 > **このファイルの役割**: 次の開発セッションを始めるための「今すぐ使える状態の地図」。
 > ゲーム仕様の詳細は `spec.md`、変更履歴は `changelog.md`、タスク一覧は `todo.md` を参照。
@@ -16,7 +16,7 @@
 
 ---
 
-## 2. ファイル構成（v2.5.0）
+## 2. ファイル構成（v2.6.0）
 
 | ファイル | 層 | 内容 |
 |---------|-----|------|
@@ -46,7 +46,7 @@
 | 🚀 機体 | 機体スロット＋機体購入（実績/鉱石） |
 | ✨ バフ | バフスロット3枠＋バフアイテム購入 |
 
-### 武器一覧（v2.5.0 / 全6種・最大Lv5）
+### 武器一覧（v2.6.0 / 全6種・最大Lv5）
 
 | 武器 | アイコン | レアリティ | Lv4効果 | Lv5固有効果 |
 |---|---|---|---|---|
@@ -57,23 +57,54 @@
 | バリア砲 | 🛡️ | Epic | 幅拡大+燃料削減 | 反射バリア |
 | ホーミング弾 | 🎯 | Rare | 追尾4発+精度向上 | 連鎖ホーミング |
 
+### 難易度システム（v2.6.0新規）
+
+| 難易度 | 隕石出現率 | スコア倍率 | ボスHP係数 |
+|:---:|:---:|:---:|:---:|
+| EASY | ×0.7 | ×0.8 | ×0.7（最低1） |
+| NORMAL | ×1.0 | ×1.0 | ×1.0 |
+| HARD | ×1.4 | ×1.3 | ×1.5 |
+
+- `Game.difficulty` にセレクト値（`"easy"/"normal"/"hard"`）を保持
+- `Game.scoreMultiplier` に倍率を保持。`Game.score` の全再計算箇所で乗算（合計8箇所）
+- `Game.bossDifficultyMul` に係数を保持。`Obstacles.spawnBoss()` で `hp` 計算時に乗算
+- `scoreBreakdown` 内訳は倍率前の生値で保持（統計画面の内訳表示は倍率の影響を受けない）
+
+### スコア計算（v2.6.0）
+
+```
+総合スコア = (ワームホール + シールド取得 + 資源取得 + 弾破壊 + シールド破壊) × 難易度倍率
+※ 飛行距離はスコアに含めない（独立指標として表示のみ）
+※ scoreBreakdown の内訳値は倍率前の生値
+```
+
 ### 武器解放条件
 
 - Lv4: 当該武器を装備した状態で累積飛行距離 **500,000 km** 到達
 - Lv5: 当該武器を装備した状態で累積飛行距離 **1,500,000 km** 到達
 - 距離はゲームオーバー時・タイトル戻り時に `localStorage["weaponDistances"]` へ一括保存
 
-### スコア計算（v2.2.0以降・変更なし）
-
-```
-スコア = ワームホール(200) + シールド取得(100) + 資源取得(150)
-       + 弾による破壊(10〜500) + シールドによる破壊(10〜30)
-※ 飛行距離はスコアに含めない（独立指標として表示のみ）
-```
-
 ---
 
 ## 4. 実装メモ（次セッションで参照が必要な技術詳細）
+
+### 難易度適用の実装箇所
+
+```
+startGameDirectly() 冒頭:
+  document.getElementById("difficultySelect").value を読み取り
+  DIFFICULTY_CONFIG[difficulty] から spawnMul / scoreMultiplier / bossHpMul を取得
+  → Game.OBSTACLE_SPAWN_RATE = 0.005 * spawnMul
+  → Game.scoreMultiplier     = scoreMultiplier
+  → Game.bossDifficultyMul   = bossHpMul
+
+score再計算（合計8箇所）:
+  script.js  3箇所: gameloop内 / addBulletDestructionScore内 / シールド破壊内
+  entities.js 5箇所: ボス撃破×2 / 弾破壊 / 弾ボス撃破 / ホーミングボス撃破
+
+spawnBoss():
+  const hp = Math.max(1, Math.round(Math.min(10, 5 + Math.floor(distance / 2000)) * bossHpMul))
+```
 
 ### Lv4/5 固有フラグ（`Bullets` オブジェクト）
 
@@ -123,7 +154,7 @@ window.UI._isNewRecord   = isNewRecord;
 window.UI._prevBestScore = this.maxScore;
 ```
 
-### localStorage キー一覧（v2.5.0 完全版）
+### localStorage キー一覧（v2.6.0 完全版）
 
 | キー | 内容 |
 |---|---|
@@ -137,8 +168,8 @@ window.UI._prevBestScore = this.maxScore;
 | `ownedShips` | 所有機体リスト |
 | `buffSlots` | バフスロット設定 |
 | `equippedWeapon` | 装備中武器（`{id, level}` 形式） |
-| `weaponDistances` | 武器別累積飛行距離（`{weaponId: km}` 形式）← **v2.5.0新規** |
-| `weaponUnlockNotified` | 解放通知済みフラグ（`{weaponId_lv4: true}` 形式）← **v2.5.0新規** |
+| `weaponDistances` | 武器別累積飛行距離（`{weaponId: km}` 形式） |
+| `weaponUnlockNotified` | 解放通知済みフラグ（`{weaponId_lv4: true}` 形式） |
 | `bgmSettings` | BGM設定 |
 | `soundSettings` | 効果音設定 |
 | `vibrationSettings` | 振動強度設定 |
@@ -165,7 +196,7 @@ print("depth:", depth)  # 必ず 0 であること
 ## 6. 参照ドキュメント
 
 | ファイル | 役割 | 参照タイミング |
-|---------|------|--------------|
-| `spec.md` | ゲーム仕様の詳細（§18のlocalStorageキー一覧はv2.5.0時点で未更新） | 仕様確認・新機能設計時 |
+|---------|------|--------------| 
+| `spec.md` | ゲーム仕様の詳細（§18のlocalStorageキー一覧・§13武器システムはv2.5.0時点で未更新） | 仕様確認・新機能設計時 |
 | `changelog.md` | バージョン別変更履歴 | 過去の変更経緯を確認する時 |
 | `todo.md` | バグ・機能・タスク一覧（未着手のみ） | 次の作業を選ぶ時 |

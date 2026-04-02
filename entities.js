@@ -88,7 +88,8 @@ const Obstacles = {
     spawnBoss(canvas) {
         if (this.boss) return;
         const distance = (window.Game && window.Game.distance) || 0;
-        const hp = Math.min(10, 5 + Math.floor(distance / 2000));
+        const bossHpMul = (window.Game && window.Game.bossDifficultyMul) || 1.0;
+        const hp = Math.max(1, Math.round(Math.min(10, 5 + Math.floor(distance / 2000)) * bossHpMul));
         const size = canvas.width * 0.40;
         this.boss = {
             x: canvas.width / 2 - size / 2,
@@ -891,12 +892,14 @@ const Bullets = {
                         window.Game.sessionBossDestroyed = (window.Game.sessionBossDestroyed || 0) + 1;
                         const bossScore = 500;
                         window.Game.scoreBreakdown.bullet = (window.Game.scoreBreakdown.bullet || 0) + bossScore;
-                        window.Game.score =
-                            window.Game.scoreBreakdown.wormhole +
+                        window.Game.score = Math.round(
+                            (window.Game.scoreBreakdown.wormhole +
                             window.Game.scoreBreakdown.shield +
                             window.Game.scoreBreakdown.resource +
                             window.Game.scoreBreakdown.bullet +
-                            (window.Game.scoreBreakdown.shield_destroy || 0);
+                            (window.Game.scoreBreakdown.shield_destroy || 0))
+                            * (window.Game.scoreMultiplier || 1)
+                        );
                         if (window.UI && window.UI.showFloatingText) {
                             window.UI.showFloatingText("+500 BOSS!", bullet.x, bullet.y, "#FF8800", "bold", "20px");
                         }
@@ -980,7 +983,7 @@ const Bullets = {
                             window.Game.sessionBossDestroyed = (window.Game.sessionBossDestroyed||0)+1;
                             const bs = 500;
                             window.Game.scoreBreakdown.bullet = (window.Game.scoreBreakdown.bullet||0)+bs;
-                            window.Game.score = window.Game.scoreBreakdown.wormhole + window.Game.scoreBreakdown.shield + window.Game.scoreBreakdown.resource + window.Game.scoreBreakdown.bullet + (window.Game.scoreBreakdown.shield_destroy||0);
+                            window.Game.score = Math.round((window.Game.scoreBreakdown.wormhole + window.Game.scoreBreakdown.shield + window.Game.scoreBreakdown.resource + window.Game.scoreBreakdown.bullet + (window.Game.scoreBreakdown.shield_destroy||0)) * (window.Game.scoreMultiplier || 1));
                         }
                         continue;
                     }
@@ -1272,12 +1275,14 @@ const Bullets = {
                 window.Game.scoreBreakdown.bullet = (window.Game.scoreBreakdown.bullet || 0) + bulletScore;
 
                 // 総合スコアも更新（飛行距離は含めない）
-                window.Game.score =
-                    window.Game.scoreBreakdown.wormhole +
+                window.Game.score = Math.round(
+                    (window.Game.scoreBreakdown.wormhole +
                     window.Game.scoreBreakdown.shield +
                     window.Game.scoreBreakdown.resource +
                     window.Game.scoreBreakdown.bullet +
-                    (window.Game.scoreBreakdown.shield_destroy || 0);
+                    (window.Game.scoreBreakdown.shield_destroy || 0))
+                    * (window.Game.scoreMultiplier || 1)
+                );
 
 
                 // スコア加算をGameメソッド経由でも行う（UI更新用）
@@ -1550,9 +1555,9 @@ const Bullets = {
                         const typeMultiplier = obsType === "fast" ? 2 : obsType === "large" ? 3 : 1;
                         const score = (window.Game.BULLET_DESTRUCTION_SCORE || 10) * typeMultiplier;
                         window.Game.scoreBreakdown.bullet = (window.Game.scoreBreakdown.bullet || 0) + score;
-                        window.Game.score = window.Game.scoreBreakdown.wormhole + window.Game.scoreBreakdown.shield +
+                        window.Game.score = Math.round((window.Game.scoreBreakdown.wormhole + window.Game.scoreBreakdown.shield +
                             window.Game.scoreBreakdown.resource + window.Game.scoreBreakdown.bullet +
-                            (window.Game.scoreBreakdown.shield_destroy || 0);
+                            (window.Game.scoreBreakdown.shield_destroy || 0)) * (window.Game.scoreMultiplier || 1));
                         window.Game.sessionDestroyedByType = window.Game.sessionDestroyedByType || {normal:0,fast:0,large:0};
                         window.Game.sessionDestroyedByType[obsType] = (window.Game.sessionDestroyedByType[obsType] || 0) + 1;
                     }
@@ -1584,9 +1589,9 @@ const Bullets = {
                     if (window.Game && window.Game.gameRunning) {
                         window.Game.sessionBossDestroyed = (window.Game.sessionBossDestroyed || 0) + 1;
                         window.Game.scoreBreakdown.bullet = (window.Game.scoreBreakdown.bullet || 0) + 500;
-                        window.Game.score = window.Game.scoreBreakdown.wormhole + window.Game.scoreBreakdown.shield +
+                        window.Game.score = Math.round((window.Game.scoreBreakdown.wormhole + window.Game.scoreBreakdown.shield +
                             window.Game.scoreBreakdown.resource + window.Game.scoreBreakdown.bullet +
-                            (window.Game.scoreBreakdown.shield_destroy || 0);
+                            (window.Game.scoreBreakdown.shield_destroy || 0)) * (window.Game.scoreMultiplier || 1));
                         if (window.UI && window.UI.showFloatingText)
                             window.UI.showFloatingText("+500 BOSS!", bCx, b.y, "#00FFFF", "bold", "20px");
                     }

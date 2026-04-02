@@ -2064,6 +2064,8 @@ const Game = {
     maxLives: 3,
 
     // ゲーム設定
+    difficulty: "normal",       // "easy" | "normal" | "hard"
+    scoreMultiplier: 1.0,       // 難易度別スコア倍率
     BASE_OBSTACLE_SPAWN_RATE: 5, // 障害物
     BASE_WORMHOLE_SPAWN_RATE: 0.0001, // ワームホール
     POWERUP_SPAWN_RATE: 0.001, // パワーアップ
@@ -3395,12 +3397,14 @@ const Game = {
         // }
 
         // 総合スコア = ワームホール + シールド + 資源 + 弾破壊 + シールド破壊（飛行距離を除く）
-        this.score =
-            this.scoreBreakdown.wormhole +
+        this.score = Math.round(
+            (this.scoreBreakdown.wormhole +
             this.scoreBreakdown.shield +
             this.scoreBreakdown.resource +
             this.scoreBreakdown.bullet +
-            (this.scoreBreakdown.shield_destroy || 0);
+            (this.scoreBreakdown.shield_destroy || 0))
+            * (this.scoreMultiplier || 1)
+        );
 
 
         // 最大スコアを追跡（ここに追加）
@@ -3616,12 +3620,14 @@ const Game = {
         try {
             // 弾破壊ボーナススコアを追加（既にhandleBulletHitで加算済みなのでUI更新のみ）
             // 総合スコアを再計算（飛行距離は含めない）
-            this.score =
-                this.scoreBreakdown.wormhole +
+            this.score = Math.round(
+                (this.scoreBreakdown.wormhole +
                 this.scoreBreakdown.shield +
                 this.scoreBreakdown.resource +
                 this.scoreBreakdown.bullet +
-                (this.scoreBreakdown.shield_destroy || 0);
+                (this.scoreBreakdown.shield_destroy || 0))
+                * (this.scoreMultiplier || 1)
+            );
 
 
             // UIを即時更新
@@ -3803,12 +3809,14 @@ const Game = {
             const typeMultiplier = obsType === "fast" ? 2 : obsType === "large" ? 3 : 1;
             const shieldScore = Game.BULLET_DESTRUCTION_SCORE * typeMultiplier;
             Game.scoreBreakdown.shield_destroy = (Game.scoreBreakdown.shield_destroy || 0) + shieldScore;
-            Game.score =
-                Game.scoreBreakdown.wormhole +
+            Game.score = Math.round(
+                (Game.scoreBreakdown.wormhole +
                 Game.scoreBreakdown.shield +
                 Game.scoreBreakdown.resource +
                 Game.scoreBreakdown.bullet +
-                (Game.scoreBreakdown.shield_destroy || 0);
+                (Game.scoreBreakdown.shield_destroy || 0))
+                * (Game.scoreMultiplier || 1)
+            );
             if (typeof Game.addBulletDestructionScore === "function") Game.addBulletDestructionScore();
         }
 
@@ -4259,6 +4267,20 @@ const Game = {
 
     // 直接ゲーム開始（バフスロット自動適用・v2.4.0〜）
     startGameDirectly() {
+
+        // 難易度設定を読み取って各パラメーターに反映
+        const sel = document.getElementById("difficultySelect");
+        this.difficulty = sel ? sel.value : "normal";
+        const DIFFICULTY_CONFIG = {
+            easy:   { spawnMul: 0.7, scoreMultiplier: 0.8,  bossHpMul: 0.7 },
+            normal: { spawnMul: 1.0, scoreMultiplier: 1.0,  bossHpMul: 1.0 },
+            hard:   { spawnMul: 1.4, scoreMultiplier: 1.3,  bossHpMul: 1.5 },
+        };
+        const dc = DIFFICULTY_CONFIG[this.difficulty] || DIFFICULTY_CONFIG.normal;
+        this.OBSTACLE_SPAWN_RATE = 0.005 * dc.spawnMul;
+        this.WORMHOLE_SPAWN_RATE = 0.0003;
+        this.scoreMultiplier     = dc.scoreMultiplier;
+        this.bossDifficultyMul   = dc.bossHpMul;
 
         // セッション武器距離をリセット
         this._sessionWeaponDistance = 0;
