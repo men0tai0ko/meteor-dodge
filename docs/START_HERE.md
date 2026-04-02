@@ -10,7 +10,7 @@
 隕石を避けながら飛行距離を伸ばし、鉱石を採掘してアイテム・武器・機体を強化する。  
 GitHub Pages でホスト済み: **https://men0tai0ko.github.io/meteor-dodge/**
 
-現在 **v2.6.0**。F-10（難易度選択 EASY/NORMAL/HARD）・F-21（難易度別ボスHP）の実装が完了。
+現在 **v2.9.1**。ポーズモーダル・BGM改修・設定画面改修・ボタン音バグ修正3件が完了。
 
 ---
 
@@ -70,40 +70,41 @@ GitHub Pages でホスト済み: **https://men0tai0ko.github.io/meteor-dodge/**
 | 格納庫 | 装備/機体/バフの3タブ・Lv4/5ロック表示・進捗バー |
 | SNSシェア | Web Share API（モバイル）+ Twitter fallback（PC）・本番URL設定済み |
 | NEW RECORD | ゲームオーバー後にパルスアニメ演出・前回ベスト表示 |
-| タイトル | ベストスコア常時表示・アイコンボタン（格納庫/遊び方/設定/実績） |
+| タイトル | ベストスコア常時表示・アイコンボタン（格納庫/遊び方/設定/実績）・ラベル折り返しなし |
+| ポーズ | ESCキーでポーズモーダル表示・プレイ再開/タイトルへ選択可 |
+| キーショートカット | S:設定 / A:実績（ゲーム中のみ）|
+| BGM | タイトル無音・ゲーム開始時ファンファーレ（ワンフレーズ）・以降効果音のみ |
+| 設定画面 | データバックアップ（書き出し/読み込み）・振動項目スマホのみ表示 |
 | デプロイ | GitHub Pages 稼働中 |
 
 ### 未実装（todo.mdを参照）
 
 | 優先度 | タスク |
 |:---:|---|
-| 🟡 | D-1/D-2: spec.md への Lv4/5仕様・localStorageキー追記 |
 | 🟢 | F-15〜F-20: 長押し操作・リプレイ・アクセシビリティ等 |
-| 🟢 | D-3: 統計画面に難易度補正の補足表示 |
 
 ---
 
-## 直近の変更内容（v2.6.0 / 本セッション）
+## 直近の変更内容（v2.9.1 / 本セッション）
 
-### 機能追加（F-10 / F-21）
+### v2.8.0：ポーズモーダル・キーショートカット
 
-- **難易度選択プルダウン**をタイトル画面に追加（ゲームスタートボタン直下）
-- **難易度別パラメーター**を `startGameDirectly()` 冒頭で適用
+- **ESCキーでポーズモーダルを表示**（プレイ再開 / タイトルへ）
+- 「タイトルへ」は `gameOver()` 経由（統計保存 → 統計画面 → タイトル）
+- `S` キー: 設定画面を開く / `A` キー: 実績画面を開く（ゲーム中のみ有効）
+- `Space` キーポーズ廃止・`R` キー削除
 
-  | 難易度 | 隕石出現率 | スコア倍率 | ボスHP係数 |
-  |:---:|:---:|:---:|:---:|
-  | EASY | ×0.7 | ×0.8 | ×0.7（最低1） |
-  | NORMAL | ×1.0 | ×1.0 | ×1.0 |
-  | HARD | ×1.4 | ×1.3 | ×1.5 |
+### v2.9.0：BGM改修・設定画面改修
 
-- **スコア倍率**を `Game.scoreMultiplier` で管理。score再計算の全8箇所（script.js 3箇所・entities.js 5箇所）に適用
-- **ボスHP**を `Game.bossDifficultyMul` で管理。`Obstacles.spawnBoss()` 内で乗算
+- タイトル画面を無音化
+- ゲーム開始時にファンファーレ（ワンフレーズ・約4秒）を再生・以降は効果音のみ
+- 設定画面プルダウンデザイン統一・採掘効果音を効果音に統合・振動設定スマホのみ表示
 
-### UI改善
+### v2.9.1：バグ修正3件
 
-- タイトル画面の4ボタンをアイコン＋ラベルの小型ボタンに変更し横並び配置
-  - 📦 格納庫 / ❓ 遊び方 / ⚙️ 設定 / 🏆 実績
-  - ボタンID・イベントリスナーは変更なし
+- `setupButtonWithSound` に `touchFired` フラグ追加 → ボタン音2重再生を修正
+- `achievementsBtnFromGame` を `setupButtonWithSound` で登録 → 実績ボタン音なしを修正
+- `showScreen()` 内の余分な音再生を削除 → 設定画面遷移で音が2回鳴る問題を修正
 
 ---
 
@@ -113,7 +114,7 @@ GitHub Pages でホスト済み: **https://men0tai0ko.github.io/meteor-dodge/**
 |:---:|---|---|
 | 🟡 | GitHub Pagesに最新ファイルが反映されるまで1〜2分かかる | 仕様（CDN遅延） |
 | 🟡 | `file://` 環境でSNSシェアボタンはTwitter fallbackのみ動作 | 仕様 |
-| 🟢 | EASY/HARDでスコア内訳合計≠総合スコアになる | 仕様（D-3で補足表示を検討） |
+| 🟢 | EASY/HARDでスコア内訳合計≠総合スコアになる | 仕様（統計画面に補足表示済み） |
 | 🟢 | ブラウザ強制終了時に当セッションの武器距離が消失 | 既知・許容範囲（maxScoreと同等） |
 | 🟢 | ホーミング弾 `hb` に `width/height` がなく `handleBulletHit` 内で `undefined` が発生する可能性 | 既存継続問題・軽微 |
 | 🟢 | 解放通知トーストがゲームオーバー時のタイミングで統計画面と重なる可能性 | 軽微 |
@@ -131,6 +132,7 @@ GitHub Pages でホスト済み: **https://men0tai0ko.github.io/meteor-dodge/**
 | `saveCumulativeStats()` | 非同期キュー保存（最大2秒遅延）のため即時保存が保証されない | `gameOver()` 内のタイミングで記録する設計を守る |
 | `_sessionWeaponDistance` | ゲームループ内ではメモリ累積のみ。`gameOver()` と `reset()` の**両方**で `saveWeaponDistance()` を呼ぶ設計になっている | 片方だけ修正しないこと |
 | `scoreMultiplier` 適用箇所 | score再計算は合計8箇所に分散している。新たにscore再計算を追加する場合は必ず `* (scoreMultiplier \|\| 1)` を乗算すること | 漏れると難易度間でスコアが不整合になる |
+| バックアップの `BACKUP_KEYS` | `script.js` の `exportDataBtn` ハンドラ内に定義。新規 `localStorage` キーを追加した場合はここにも追記すること | 漏れると書き出しJSONに含まれなくなる |
 | `reflectFrames` | 反射バリアで反転した隕石オブジェクトに付与するフィールド。既存スポーン時は `undefined` だが `undefined > 0` = `false` で安全 | 衝突判定の条件を変えないこと |
 | `UI.setupButtonWithSound` と `TitleScreen.setupButtonWithSound` | 同名だが差分がある（TitleScreenのみ非同期リトライあり）。統合禁止 | 変更しない |
 
@@ -182,6 +184,9 @@ checks = [
     ("F-21: bossDifficultyMul entities","bossDifficultyMul" in ent),
     ("F-10: difficultySelect HTML",     "difficultySelect" in open('index.html',encoding='utf-8').read()),
     ("F-10: icon-btn HTML",             open('index.html',encoding='utf-8').read().count('icon-btn') >= 4),
+    ("v2.7.0: white-space nowrap",      "white-space: nowrap" in css),
+    ("v2.7.0: exportDataBtn HTML",      "exportDataBtn" in open('index.html',encoding='utf-8').read()),
+    ("v2.7.0: BACKUP_KEYS in script",   "BACKUP_KEYS" in js),
 ]
 for k, v in checks:
     print(f'{"✅" if v else "❌ 要確認"} {k}')
@@ -199,7 +204,7 @@ for k, v in checks:
 「隕石を回避せよ ワームホールアドベンチャー」
 - ブラウザで動作するスマホファーストの宇宙船アクションゲーム
 - デプロイ先: https://men0tai0ko.github.io/meteor-dodge/
-- 現在バージョン: v2.6.0
+- 現在バージョン: v2.9.1
 - 言語: Vanilla JS / HTML / CSS（サーバー不要）
 
 【引き継ぎファイル】

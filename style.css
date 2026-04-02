@@ -412,6 +412,52 @@ html, body {
     margin-bottom: 16px;
 }
 
+/* ===== ポーズモーダル ===== */
+#pauseModal {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.72);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.pause-modal-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 32px 28px;
+    background: rgba(0, 10, 30, 0.95);
+    border: 1.5px solid rgba(0, 255, 255, 0.4);
+    border-radius: 18px;
+    min-width: 220px;
+}
+
+.pause-modal-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #00ffff;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+}
+
+.pause-modal-inner .menu-btn {
+    width: 100%;
+}
+
+/* 振動設定はスマホのみ表示 */
+.setting-item-mobile-only {
+    display: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .setting-item-mobile-only {
+        display: flex;
+    }
+}
+
 /* ===== バックアップボタン ===== */
 .backup-btn-group {
     display: flex;

@@ -2,6 +2,101 @@
 
 ---
 
+## v2.9.1 — 2026-04-03
+
+### バグ修正
+
+- **ボタン音の2重再生修正**
+  - `UI.setupButtonWithSound` / `TitleScreen.setupButtonWithSound` の両方に `touchFired` フラグを追加
+  - スマホで `touchstart` → `click` の順に両イベントが発火することで音が2回鳴っていた問題を修正
+  - `touchstart` 発火後は直後の `click` を1回スキップする方式で対処
+
+- **ゲーム中の実績ボタンで音が鳴らない問題を修正**
+  - `achievementsBtnFromGame` の登録を `setupButton` → `setupButtonWithSound("menuOpen")` に変更
+  - `KeyA` ハンドラにも `SoundManager.play("menuOpen")` を追加
+
+- **`showScreen()` 内の余分な音再生を削除**
+  - `showScreen("settingsScreen")` 時に `menuOpen` を再生するコードが残存しており、タイトルからの設定ボタン・`KeyS` キーで音が2回鳴る原因になっていた
+  - 音の責務は各ボタンのイベントハンドラ側に統一
+
+---
+
+## v2.9.0 — 2026-04-03
+
+### BGM改修
+
+- **タイトル画面を無音化**
+  - `ensureTitleBGM()` を BGM停止処理に変更
+  - ユーザージェスチャーハンドラ・`attemptInitialBGM()` からの `mainTheme` 再生を削除
+
+- **ゲーム開始ファンファーレ追加**（`audio.js`）
+  - `BGMSequences.fanfare` を新規追加（BPM150・スクエア波+トライアングル波・約4秒・ループなし）
+  - `startGameDirectly()` で `gameplay` の代わりに `fanfare` をワンフレーズ再生
+  - `BGMManager.createBGMSequence()` でシーケンス側の `loop: false` を優先するよう修正
+  - `scheduleNotes()` にループなし時の終了処理（`isPlaying` リセット）を追加
+
+- **危険状態BGM廃止**
+  - `checkDangerState()` の BGM切り替え処理を削除（効果音のみに統一）
+
+### 設定画面改修
+
+- **プルダウンデザインを統一**
+  - `bgmToggle` / `soundToggle` に `.setting-select` クラスを追加（`miningSoundToggle` と同デザインに統一）
+
+- **「採掘効果音」を「効果音」に統合**
+  - `miningSoundToggle` の設定項目を削除（`soundToggle` のOFFで採掘音も含む全効果音が止まるため）
+
+- **振動設定をスマホのみ表示**
+  - 振動フィードバック・振動強度の2項目に `setting-item-mobile-only` クラスを付与
+  - `@media (hover: none) and (pointer: coarse)` でタッチデバイスのみ表示
+
+---
+
+## v2.8.0 — 2026-04-03
+
+### 機能追加
+
+- **F-16: ポーズモーダル**
+  - `ESC` キーでポーズモーダルを表示（ゲーム中のみ有効）
+  - モーダルに「▶ プレイ再開」「🏠 タイトルへ」ボタンを配置
+  - 「タイトルへ」は `gameOver()` 相当（保存処理 → 統計画面 → タイトル）
+  - `reset()` 時にモーダルが残らないよう非表示処理を追加
+
+- **キーボードショートカット追加**（ゲーム中のみ有効）
+
+  | キー | 動作 |
+  |---|---|
+  | `Escape` | ポーズモーダル表示 |
+  | `S` | 設定画面を開く（自動ポーズ） |
+  | `A` | 実績画面を開く（自動ポーズ） |
+
+### 仕様変更
+
+- `Space` キーによるポーズを廃止
+- `R` キーによるリセットを削除（フリーズバグの根本対応）
+
+---
+
+## v2.7.0 — 2026-04-02
+
+### バグ修正
+
+- **アイコンボタンラベルの改行修正**
+  - `.icon-btn-label` に `white-space: nowrap` を追加
+  - 狭い画面幅で「格納庫」「遊び方」のラベルが途中で改行していた問題を修正
+
+### 機能追加
+
+- **データバックアップ機能**（設定画面に追加）
+  - 「書き出し」ボタン：全 `localStorage` データを日付付きJSONファイルとしてダウンロード
+  - 「読み込み」ボタン：JSONファイルを選択してデータを復元（確認ダイアログ後にページリロード）
+  - バックアップ対象キー：`gameStorage` / `equippedShip` / `ownedShips` / `buffSlots` / `equippedWeapon` / `weaponDistances` / `weaponUnlockNotified` / `gameCumulativeStats` / `totalCumulativeDistance` / `achievementsProgress` / `bgmSettings` / `soundSettings` / `vibrationSettings` / `miningSoundSettings`
+  - ファイル名形式：`meteor-dodge-backup-YYYY-MM-DD.json`
+  - 注意：JSONは平文のため内容は編集可能（サーバーレス構成のため改ざん完全防止は不可）
+  - 新規 `localStorage` キーを追加した際は `script.js` 内の `BACKUP_KEYS` 配列にも追記すること
+
+---
+
 ## v2.6.0 — 2026-04-02
 
 ### 機能追加

@@ -465,6 +465,41 @@ window.SoundManager = SoundManager;
 // BGMSequences — BGM音楽データ
 // ============================================================
 const BGMSequences = {
+    // ゲーム開始ファンファーレ（ワンフレーズのみ・ループなし）
+    fanfare: {
+        name: "ファンファーレ",
+        bpm: 150,
+        loop: false,
+        tracks: [
+            {
+                instrument: "square",
+                notes: [
+                    { note: "G4",  duration: 0.5, type: "square", velocity: 0.7 },
+                    { note: "E4",  duration: 0.5, type: "square", velocity: 0.6 },
+                    { note: "C4",  duration: 0.5, type: "square", velocity: 0.6 },
+                    { note: "E4",  duration: 0.5, type: "square", velocity: 0.65 },
+                    { note: "G4",  duration: 0.5, type: "square", velocity: 0.7 },
+                    { note: "A4",  duration: 0.5, type: "square", velocity: 0.7 },
+                    { note: "G4",  duration: 0.5, type: "square", velocity: 0.65 },
+                    { note: "E4",  duration: 0.5, type: "square", velocity: 0.6 },
+                    { note: "C5",  duration: 0.5, type: "square", velocity: 0.75 },
+                    { note: "B4",  duration: 0.5, type: "square", velocity: 0.7 },
+                    { note: "G4",  duration: 0.5, type: "square", velocity: 0.65 },
+                    { note: "E4",  duration: 1.0, type: "square", velocity: 0.5 }
+                ]
+            },
+            {
+                instrument: "triangle",
+                notes: [
+                    { note: "C3",  duration: 2.0, type: "triangle", velocity: 0.3 },
+                    { note: "G3",  duration: 2.0, type: "triangle", velocity: 0.3 },
+                    { note: "C3",  duration: 2.0, type: "triangle", velocity: 0.25 },
+                    { note: "E3",  duration: 2.0, type: "triangle", velocity: 0.2 }
+                ]
+            }
+        ]
+    },
+
     // メインテーマ（タイトル画面）
     mainTheme: {
         name: "メインテーマ",
@@ -744,7 +779,9 @@ const BGMManager = {
 
     // BGMシーケンスの作成
     createBGMSequence(sequence, options) {
-        const { loop = true, fadeIn = 0.5 } = options;
+        // sequenceにloop:falseが定義されている場合はそちらを優先
+        const loopDefault = sequence.loop !== undefined ? sequence.loop : true;
+        const { loop = loopDefault, fadeIn = 0.5 } = options;
 
         // メインのゲインノードを作成
         const gainNode = this.audioContext.createGain();
@@ -802,13 +839,12 @@ const BGMManager = {
         });
 
         // ループ処理 - 正確なループ時間を計算
+        const totalDuration = sequence.tracks.reduce((max, track) => {
+            const trackDuration = track.notes.reduce((sum, note) => sum + note.duration, 0) * beatDuration;
+            return Math.max(max, trackDuration);
+        }, 0);
+
         if (loop && this.isPlaying) {
-            const totalDuration = sequence.tracks.reduce((max, track) => {
-                const trackDuration = track.notes.reduce((sum, note) => sum + note.duration, 0) * beatDuration;
-                return Math.max(max, trackDuration);
-            }, 0);
-
-
             const loopTimeoutId = setTimeout(() => {
                 // まだ再生中で、同じgainNodeを使用している場合のみループ
                 if (this.isPlaying && this.currentBGM && this.currentBGM.gainNode === gainNode) {
@@ -819,6 +855,18 @@ const BGMManager = {
             // タイムアウトIDを保存
             if (this.currentBGM && this.currentBGM.timeoutIds) {
                 this.currentBGM.timeoutIds.push(loopTimeoutId);
+            }
+        } else if (!loop) {
+            // ワンフレーズ再生終了後にisPlayingをリセット
+            const endTimeoutId = setTimeout(() => {
+                if (this.currentBGM && this.currentBGM.gainNode === gainNode) {
+                    this.isPlaying = false;
+                    this.currentBGM = null;
+                }
+            }, (totalDuration + 0.5) * 1000);
+
+            if (this.currentBGM && this.currentBGM.timeoutIds) {
+                this.currentBGM.timeoutIds.push(endTimeoutId);
             }
         }
     },

@@ -161,33 +161,26 @@
                 <div class="settings-content">
                     <div class="setting-item">
                         <label for="bgmToggle">BGM</label>
-                        <select id="bgmToggle">
+                        <select id="bgmToggle" class="setting-select">
                             <option value="on" selected>ON</option>
                             <option value="off">OFF</option>
                         </select>
                     </div>
                     <div class="setting-item">
                         <label for="soundToggle">効果音</label>
-                        <select id="soundToggle">
+                        <select id="soundToggle" class="setting-select">
                             <option value="on" selected>ON</option>
                             <option value="off">OFF</option>
                         </select>
                     </div>
-                    <div class="setting-item">
-                        <label for="miningSoundToggle">採掘効果音:</label>
-                        <select id="miningSoundToggle" class="setting-select">
-                            <option value="on">ON</option>
-                            <option value="off">OFF</option>
-                        </select>
-                    </div>
-                    <div class="setting-item">
+                    <div class="setting-item setting-item-mobile-only">
                         <label for="vibrationToggle">振動フィードバック:</label>
                         <select id="vibrationToggle" class="setting-select">
                             <option value="on">ON</option>
                             <option value="off">OFF</option>
                         </select>
                     </div>
-                    <div class="setting-item" id="vibrationIntensityItem">
+                    <div class="setting-item setting-item-mobile-only" id="vibrationIntensityItem">
                         <label for="vibrationIntensity">振動強度:</label>
                         <div style="display:flex;align-items:center;gap:8px;">
                             <input type="range" id="vibrationIntensity" min="1" max="3" step="1" value="2"
@@ -267,6 +260,16 @@
                     <button id="restartBtn" class="menu-btn">再プレイ</button>
                     <button id="backToTitle" class="menu-btn">タイトルへ</button>
                 </div>
+
+                <!-- ポーズモーダル -->
+                <div id="pauseModal" style="display:none">
+                    <div class="pause-modal-inner">
+                        <div class="pause-modal-title">⏸ PAUSE</div>
+                        <button id="pauseResumeBtn" class="menu-btn start-btn">▶ プレイ再開</button>
+                        <button id="pauseToTitleBtn" class="menu-btn">🏠 タイトルへ</button>
+                    </div>
+                </div>
+
                 <!--
                 <div class="instructions">
                     <p>操作方法: マウスまたはタッチで宇宙船を操作して隕石を避けましょう</p>

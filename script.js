@@ -825,7 +825,10 @@ const UI = {
             button.replaceWith(button.cloneNode(true));
             const newButton = document.getElementById(buttonId);
 
+            let touchFired = false;
+
             newButton.addEventListener("click", (e) => {
+                if (touchFired) { touchFired = false; return; }
                 e.preventDefault();
                 e.stopPropagation();
                 window.SoundManager.play(soundName);
@@ -837,6 +840,7 @@ const UI = {
                 (e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    touchFired = true;
                     window.SoundManager.play(soundName);
                     clickHandler();
                 },
@@ -1678,7 +1682,7 @@ const TitleScreen = {
             this.showScreen("settingsScreen");
         });
 
-        this.setupButton("achievementsBtnFromGame", () => {
+        this.setupButtonWithSound("achievementsBtnFromGame", () => {
             this._pausedByAchievements = false;
             if (window.Game.gameRunning && !window.Game.gamePaused) {
                 window.Game.togglePause();
@@ -1686,7 +1690,7 @@ const TitleScreen = {
             }
             this.showScreen("achievementsScreen");
             setTimeout(() => { window.Achievements.onAchievementsScreenOpen(); }, 100);
-        });
+        }, "menuOpen");
 
         this.setupButtonWithSound(
             "achievementsBtn",
@@ -1755,7 +1759,7 @@ const TitleScreen = {
                     "achievementsProgress", "bgmSettings", "soundSettings",
                     "vibrationSettings", "miningSoundSettings"
                 ];
-                const backup = { version: "2.6.0", savedAt: Date.now(), data: {} };
+                const backup = { version: "2.7.0", savedAt: Date.now(), data: {} };
                 BACKUP_KEYS.forEach(key => {
                     const val = localStorage.getItem(key);
                     if (val !== null) backup.data[key] = val;
@@ -1805,6 +1809,20 @@ const TitleScreen = {
                 e.target.value = ""; // 同一ファイルの再選択を可能にする
             });
         }
+
+        // ポーズモーダル：プレイ再開
+        this.setupButton("pauseResumeBtn", () => {
+            if (window.Game.gamePaused) window.Game.togglePause();
+        });
+
+        // ポーズモーダル：タイトルへ（gameOver()相当 → 統計画面経由）
+        this.setupButton("pauseToTitleBtn", () => {
+            const modal = document.getElementById("pauseModal");
+            if (modal) modal.style.display = "none";
+            // gamePausedを解除してからgameOver()を呼ぶ
+            window.Game.gamePaused = false;
+            window.Game.gameOver();
+        });
 
         // ゲーム画面の戻るボタン
         this.setupButton("backToTitle", () => {
@@ -1985,14 +2003,6 @@ const TitleScreen = {
             targetScreen.classList.add("active");
             this.currentScreen = screenId;
 
-            // ▼▼▼ 設定画面表示時の効果音 ▼▼▼
-            if (screenId === "settingsScreen" && window.SoundManager.enabled) {
-                setTimeout(() => {
-                    window.SoundManager.play("menuOpen");
-                }, 100);
-            }
-            // ▲▲▲ 追加終了 ▲▲▲
-
             // タイトル画面に戻った時にBGMを確認・ベストスコア表示を更新
             if (screenId === "titleScreen") {
                 this.ensureTitleBGM();
@@ -2023,26 +2033,9 @@ const TitleScreen = {
 
     // titlescreen.js の ensureTitleBGM() メソッドを修正
     ensureTitleBGM() {
-        // console.log("🎵 タイトル画面BGM確認", {
-        //     enabled: BGMManager.enabled,
-        //     audioContext: !!BGMManager.audioContext,
-        //     userGesture: BGMManager.userGestureOccurred,
-        //     isPlaying: BGMManager.isPlaying,
-        //     currentBGM: BGMManager.currentBGM?.sequence?.name
-        // });
-
-        // AudioContextが存在し、ユーザージェスチャーが行われている場合のみ
-        if (window.BGMManager.enabled && window.BGMManager.audioContext && window.BGMManager.userGestureOccurred) {
-            const currentBGMName = BGMManager.currentBGM?.sequence?.name;
-
-            if (!window.BGMManager.isPlaying || currentBGMName !== "mainTheme") {
-                // 少し遅延を入れて確実に再生
-                setTimeout(() => {
-                    window.BGMManager.play("mainTheme");
-                }, 100);
-            } else {
-            }
-        } else {
+        // タイトル画面はBGM無音
+        if (window.BGMManager.isPlaying) {
+            window.BGMManager.stop(0.5);
         }
     },
 
@@ -2061,7 +2054,10 @@ const TitleScreen = {
             button.replaceWith(button.cloneNode(true));
             const newButton = document.getElementById(buttonId);
 
+            let touchFired = false;
+
             newButton.addEventListener("click", (e) => {
+                if (touchFired) { touchFired = false; return; }
                 e.preventDefault();
                 e.stopPropagation();
                 window.SoundManager.play(soundName);
@@ -2073,6 +2069,7 @@ const TitleScreen = {
                 (e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    touchFired = true;
                     window.SoundManager.play(soundName);
                     clickHandler();
                 },
@@ -3228,9 +3225,12 @@ const Game = {
 
         this.gamePaused = !this.gamePaused;
 
+        const modal = document.getElementById("pauseModal");
         if (this.gamePaused) {
             cancelAnimationFrame(this.animationId);
+            if (modal) modal.style.display = "flex";
         } else {
+            if (modal) modal.style.display = "none";
             this.gameLoop();
         }
     },
@@ -3239,6 +3239,10 @@ const Game = {
         // まずゲーム状態を確実に停止
         this.gameRunning = false;
         this.gamePaused = false;
+
+        // ポーズモーダルが残っていれば非表示にする
+        const pauseModal = document.getElementById("pauseModal");
+        if (pauseModal) pauseModal.style.display = "none";
 
         // アニメーションフレームを確実にキャンセル
         if (this.animationId) {
@@ -4284,15 +4288,9 @@ const Game = {
         }
     },
 
-    // 危険状態のBGM切り替え（ライフが少ない時など）
+    // 危険状態チェック（BGMなし・効果音のみ）
     checkDangerState() {
-        if (this.lives === 1 && !this.dangerBGMPlaying) {
-            window.BGMManager.play("danger");
-            this.dangerBGMPlaying = true;
-        } else if (this.lives > 1 && this.dangerBGMPlaying) {
-            window.BGMManager.play("gameplay");
-            this.dangerBGMPlaying = false;
-        }
+        // BGMは使用しない（ゲーム中は効果音のみ）
     },
 
     // レスポンシブデザイン
@@ -4520,9 +4518,9 @@ const Game = {
             comboHistory: []
         };
 
-        // BGM切り替え
+        // BGM：ゲーム開始ファンファーレをワンフレーズ再生
         if (window.BGMManager.enabled && !window.BGMManager.isContextSuspended) {
-            window.BGMManager.play("gameplay");
+            window.BGMManager.play("fanfare");
         }
 
         // UI表示
@@ -4832,18 +4830,7 @@ function ensureGlobalModules() {
                 // 3. 状態確認
                 // debugBGMState();
 
-                // 4. BGM再生
-                if (window.BGMManager.enabled) {
-                    // 少し遅延を入れて確実に
-                    setTimeout(() => {
-                        window.BGMManager.play("mainTheme");
-
-                        // 再生確認
-                        setTimeout(() => {
-                            // debugBGMState();
-                        }, 500);
-                    }, 100);
-                }
+                // 4. BGM再生（タイトル画面は無音のため何もしない）
             } catch (error) {
                 console.error("❌ ユーザージェスチャー処理エラー:", error);
             }
@@ -4873,26 +4860,34 @@ function ensureGlobalModules() {
         // キーボード操作のサポート
         document.addEventListener("keydown", (e) => {
 
+            const onGameScreen = window.TitleScreen.getCurrentScreen() === "gameScreen";
+
             switch (e.code) {
-                case "Space":
+                case "Escape":
                     e.preventDefault();
-                    if (window.Game.gameRunning) {
+                    if (onGameScreen && window.Game.gameRunning) {
                         window.Game.togglePause();
                     }
                     break;
 
-                case "Escape":
-                    e.preventDefault();
-                    if (window.TitleScreen.getCurrentScreen() === "gameScreen") {
-                        window.TitleScreen.showScreen("titleScreen");
-                        window.Game.reset();
+                case "KeyS":
+                    if (onGameScreen && window.Game.gameRunning && !window.Game.gamePaused) {
+                        e.preventDefault();
+                        window.SoundManager.play("menuOpen");
+                        window.TitleScreen._pausedBySettings = true;
+                        window.Game.togglePause();
+                        window.TitleScreen.showScreen("settingsScreen");
                     }
                     break;
 
-                case "KeyR":
-                    if (window.Game.gameRunning && !window.Game.gamePaused) {
+                case "KeyA":
+                    if (onGameScreen && window.Game.gameRunning && !window.Game.gamePaused) {
                         e.preventDefault();
-                        window.Game.reset();
+                        window.SoundManager.play("menuOpen");
+                        window.TitleScreen._pausedByAchievements = true;
+                        window.Game.togglePause();
+                        window.TitleScreen.showScreen("achievementsScreen");
+                        setTimeout(() => { window.Achievements.onAchievementsScreenOpen(); }, 100);
                     }
                     break;
             }
@@ -5022,14 +5017,9 @@ function ensureGlobalModules() {
     // 定期的な状態監視（開発用）
     // setInterval(debugBGMState, 5000);
 
-    // 新しい関数：初期BGM再生試行（元のコードを修正）
+    // 新しい関数：初期BGM再生試行（タイトル画面は無音）
     function attemptInitialBGM() {
-
-        // ユーザージェスチャーが行われ、AudioContextが存在する場合のみ再生
-        if (window.BGMManager.userGestureOccurred && window.BGMManager.audioContext && window.BGMManager.enabled && !window.BGMManager.isPlaying) {
-            window.BGMManager.play("mainTheme");
-        } else {
-        }
+        // タイトル画面は無音のため何もしない
     }
 
     // グローバルに公開してデバッグ用
