@@ -652,6 +652,11 @@ const UI = {
                     <td class="stats-score-count">(${byShield.large}個)</td>
                 </tr>` : ""}
             </table>
+            ${(window.Game && window.Game.difficulty && window.Game.difficulty !== "normal")
+                ? `<div class="stats-difficulty-note">
+                    難易度補正 (${window.Game.difficulty.toUpperCase()}) ×${window.Game.scoreMultiplier} 適用済み
+                   </div>`
+                : ""}
 
             <!-- 採掘 -->
             <div class="stats-row-header" style="margin-top:18px;">
@@ -1739,6 +1744,67 @@ const TitleScreen = {
             },
             "menuOpen"
         );
+
+        // データバックアップ：書き出し
+        this.setupButton("exportDataBtn", () => {
+            try {
+                const BACKUP_KEYS = [
+                    "gameStorage", "equippedShip", "ownedShips", "buffSlots",
+                    "equippedWeapon", "weaponDistances", "weaponUnlockNotified",
+                    "gameCumulativeStats", "totalCumulativeDistance",
+                    "achievementsProgress", "bgmSettings", "soundSettings",
+                    "vibrationSettings", "miningSoundSettings"
+                ];
+                const backup = { version: "2.6.0", savedAt: Date.now(), data: {} };
+                BACKUP_KEYS.forEach(key => {
+                    const val = localStorage.getItem(key);
+                    if (val !== null) backup.data[key] = val;
+                });
+                const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+                const url  = URL.createObjectURL(blob);
+                const a    = document.createElement("a");
+                a.href     = url;
+                a.download = `meteor-dodge-backup-${new Date().toISOString().slice(0, 10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (e) {
+                alert("書き出しに失敗しました。");
+            }
+        });
+
+        // データバックアップ：読み込み
+        this.setupButton("importDataBtn", () => {
+            const input = document.getElementById("importFileInput");
+            if (input) input.click();
+        });
+
+        const importFileInput = document.getElementById("importFileInput");
+        if (importFileInput) {
+            importFileInput.addEventListener("change", (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    try {
+                        const backup = JSON.parse(ev.target.result);
+                        if (!backup || typeof backup.data !== "object") {
+                            alert("このファイルは有効なバックアップではありません。");
+                            return;
+                        }
+                        if (!confirm("現在のデータをバックアップファイルで上書きします。よろしいですか？")) return;
+                        Object.entries(backup.data).forEach(([key, val]) => {
+                            localStorage.setItem(key, val);
+                        });
+                        alert("データを復元しました。ページを再読み込みします。");
+                        location.reload();
+                    } catch (err) {
+                        alert("読み込みに失敗しました。ファイルが破損している可能性があります。");
+                    }
+                };
+                reader.readAsText(file);
+                e.target.value = ""; // 同一ファイルの再選択を可能にする
+            });
+        }
 
         // ゲーム画面の戻るボタン
         this.setupButton("backToTitle", () => {

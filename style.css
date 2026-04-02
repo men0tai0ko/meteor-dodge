@@ -234,6 +234,7 @@ html, body {
     font-size: 0.62rem;
     line-height: 1;
     opacity: 0.9;
+    white-space: nowrap;
 }
 
 /* ===== ゲーム画面 ===== */
@@ -409,6 +410,30 @@ html, body {
     color: #ff4444;
     text-shadow: 0 0 15px #ff4444;
     margin-bottom: 16px;
+}
+
+/* ===== バックアップボタン ===== */
+.backup-btn-group {
+    display: flex;
+    gap: 8px;
+}
+
+.backup-btn {
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    font-weight: bold;
+    background: rgba(0, 180, 219, 0.2);
+    color: #00ffff;
+    border: 1.5px solid rgba(0, 255, 255, 0.5);
+    border-radius: 50px;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s;
+}
+
+.backup-btn:active {
+    background: rgba(0, 180, 219, 0.4);
 }
 
 /* ===== 共通ボタン ===== */
@@ -2906,6 +2931,14 @@ html, body {
     font-size: 0.78rem;
     color: rgba(180, 200, 220, 0.7);
     padding: 2px 4px 4px;
+    letter-spacing: 0.02em;
+}
+
+.stats-difficulty-note {
+    font-size: 0.75rem;
+    color: rgba(180, 200, 220, 0.6);
+    text-align: right;
+    padding: 3px 4px 6px;
     letter-spacing: 0.02em;
 }
 
