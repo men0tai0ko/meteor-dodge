@@ -904,6 +904,7 @@ const UI = {
 
         // 触覚フィードバック設定
         this.setupVibrationSettings();
+        this.setupColorblindSettings();
 
     },
 
@@ -981,6 +982,39 @@ const UI = {
     // 振動サポートチェック
     supportsVibration() {
         return "vibrate" in navigator;
+    },
+
+    // 色覚サポート設定
+    setupColorblindSettings() {
+        const toggle = document.getElementById("colorblindToggle");
+        if (!toggle) return;
+
+        // 保存済み設定を反映
+        const saved = localStorage.getItem("colorblindMode") === "on";
+        toggle.value = saved ? "on" : "off";
+
+        toggle.addEventListener("change", (e) => {
+            const enabled = e.target.value === "on";
+            localStorage.setItem("colorblindMode", enabled ? "on" : "off");
+            // 即時反映（次ゲーム開始時だけでなくリアルタイムで切り替え）
+            this.applyColorblindMode(enabled);
+        });
+    },
+
+    // 色覚サポートモードの色を適用
+    applyColorblindMode(enabled) {
+        if (!window.Obstacles || !window.Obstacles.TYPES) return;
+        if (enabled) {
+            window.Obstacles.TYPES.normal.color     = "#4488CC";
+            window.Obstacles.TYPES.normal.highlight = "#66AAEE";
+            window.Obstacles.TYPES.fast.color       = "#FF8800";
+            window.Obstacles.TYPES.fast.highlight   = "#FFAA33";
+        } else {
+            window.Obstacles.TYPES.normal.color     = "#8B4513";
+            window.Obstacles.TYPES.normal.highlight = "#A0522D";
+            window.Obstacles.TYPES.fast.color       = "#B22222";
+            window.Obstacles.TYPES.fast.highlight   = "#DC143C";
+        }
     },
 
     // 採掘効果音設定
@@ -3137,6 +3171,11 @@ const Game = {
         let lastTouchX = null;
         const touchStartHandler = (e) => {
             e.preventDefault();
+            // 2本指タップでポーズ切り替え（スマホのポーズ操作）
+            if (e.touches.length >= 2) {
+                if (window.Game.gameRunning) window.Game.togglePause();
+                return;
+            }
             lastTouchX = e.touches[0].clientX; // 指の開始X座標を記録するのみ
         };
         const touchMoveHandler = (e) => {
@@ -4163,6 +4202,8 @@ const Game = {
         if (window.Bullets) window.Bullets.drawLaser(this.ctx, this.canvas);
         if (window.Bullets) window.Bullets.drawBarrier(this.ctx);
         if (window.Bullets) window.Bullets.drawCharge(this.ctx);
+        if (window.Bullets) window.Bullets.drawWarpCannon(this.ctx);
+        if (window.Bullets) window.Bullets.drawShockwave(this.ctx);
         window.Wormholes.draw(this.ctx);
         window.PowerUps.draw(this.ctx);
         window.Resources.draw(this.ctx);
@@ -4329,6 +4370,13 @@ const Game = {
         }
     },
 
+    // 装備中武器のレベルを取得するヘルパー
+    _getWeaponLevel(weaponId) {
+        if (!window.StorageSystem || !window.StorageSystem.equippedWeapon) return 0;
+        if (window.StorageSystem.equippedWeapon.id !== weaponId) return 0;
+        return window.StorageSystem.equippedWeapon.level || 1;
+    },
+
     // 直接ゲーム開始（バフスロット自動適用・v2.4.0〜）
     startGameDirectly() {
 
@@ -4346,6 +4394,12 @@ const Game = {
         this.scoreMultiplier     = dc.scoreMultiplier;
         this.bossDifficultyMul   = dc.bossHpMul;
 
+        // 色覚サポートモードの適用
+        if (window.UI && window.UI.applyColorblindMode) {
+            const colorblind = localStorage.getItem("colorblindMode") === "on";
+            window.UI.applyColorblindMode(colorblind);
+        }
+
         // セッション武器距離をリセット
         this._sessionWeaponDistance = 0;
 
@@ -4361,6 +4415,8 @@ const Game = {
             window.Bullets.barrierLevel = 0;
             window.Bullets.homingLevel = 0;
             window.Bullets.homingBullets = [];
+            window.Bullets.warpLevel = 0;
+            window.Bullets.swLevel = 0;
             if (effect) {
                 if (effect.burstCount)    window.Bullets.burstCount = effect.burstCount;
                 if (effect.bossDamage)    window.Bullets.bossDamageMultiplier = effect.bossDamage;
@@ -4418,6 +4474,31 @@ const Game = {
                 window.Bullets.chainHoming      = effect.chain            || false;
                 window.Bullets.explode          = effect.explode          || false;
                 window.Bullets.bulletSpeedBonus = effect.bulletSpeedBonus || 0;
+                // ワープキャノン
+                if (effect.warpRange) {
+                    window.Bullets.warpLevel      = this._getWeaponLevel("warp_cannon");
+                    window.Bullets.warpRange      = effect.warpRange;
+                    window.Bullets.warpCooldownMs = effect.warpCooldownMs;
+                    window.Bullets.warpFuelCost   = effect.warpFuelCost;
+                    window.Bullets.warpBossDamage = effect.warpBossDamage || 0;
+                    window.Bullets.warpFullColumn = effect.warpFullColumn || false;
+                    window.Bullets.warpLastTime   = 0;
+                } else {
+                    window.Bullets.warpLevel = 0;
+                }
+                // 衝撃波
+                if (effect.swRadiusMul) {
+                    window.Bullets.swLevel      = this._getWeaponLevel("shockwave");
+                    window.Bullets.swRadiusMul  = effect.swRadiusMul;
+                    window.Bullets.swCooldownMs = effect.swCooldownMs;
+                    window.Bullets.swFuelCost   = effect.swFuelCost;
+                    window.Bullets.swSpeedMul   = effect.swSpeedMul  || 1;
+                    window.Bullets.swBossDamage = effect.swBossDamage || 0;
+                    window.Bullets.swDouble     = effect.swDouble     || false;
+                    window.Bullets.swLastTime   = 0;
+                } else {
+                    window.Bullets.swLevel = 0;
+                }
             } else {
                 // 武器未装備時のリセット
                 window.Bullets.piercing         = false;
@@ -4428,6 +4509,8 @@ const Game = {
                 window.Bullets.chainHoming      = false;
                 window.Bullets.explode          = false;
                 window.Bullets.bulletSpeedBonus = 0;
+                window.Bullets.warpLevel        = 0;
+                window.Bullets.swLevel          = 0;
             }
         }
 

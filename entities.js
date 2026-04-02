@@ -766,6 +766,10 @@ const Bullets = {
         this.homingLastTime = 0;
         this.doubleBlastPending = false;
         this.doubleBlastTimer = 0;
+        this.warpLevel = 0;
+        this.warpLastTime = 0;
+        this.swLevel = 0;
+        this.swLastTime = 0;
     },
 
     // 射撃システムの有効/無効切り替え
@@ -1078,6 +1082,103 @@ const Bullets = {
                 this.barrierTimer = 0;
             }
         }
+
+        // ── ワープキャノンの更新 ──
+        if (this.warpLevel > 0) {
+            this._updateWarpCannon(now);
+        }
+
+        // ── 衝撃波の更新 ──
+        if (this.swLevel > 0) {
+            this._updateShockwave(now, canvas);
+        }
+    },
+
+    // ワープキャノンのupdate処理（update()から呼ぶ）
+    _updateWarpCannon(now) {
+        if (!this.warpLevel || !window.Obstacles || !window.Player) return;
+        if (now - this.warpLastTime < this.warpCooldownMs) return;
+
+        const pb = window.Player.getBounds();
+        const cx = pb.x + pb.width / 2;
+        const canvasW = window.Game && window.Game.canvas ? window.Game.canvas.width : 400;
+
+        // 発動: 真上の範囲内の隕石を消滅
+        let destroyed = 0;
+        for (let i = window.Obstacles.obstacles.length - 1; i >= 0; i--) {
+            const ob = window.Obstacles.obstacles[i];
+            const obCx = ob.x + ob.width / 2;
+            // Lv5: 全画面縦1列（canvasの中央±幅/2の範囲）
+            const inColumn = this.warpFullColumn
+                ? Math.abs(obCx - cx) < canvasW * 0.1
+                : Math.abs(obCx - cx) < (ob.width / 2 + pb.width / 2);
+            const inRange = ob.y + ob.height > 0 && ob.y < pb.y - 10;
+            const dist = pb.y - (ob.y + ob.height);
+            if (inColumn && inRange && dist < this.warpRange) {
+                if (window.Particles) window.Particles.createEffect(obCx, ob.y + ob.height / 2, "#AA66FF", "bulletHit");
+                window.Obstacles.obstacles.splice(i, 1);
+                destroyed++;
+            }
+        }
+        if (destroyed === 0) return; // 消す隕石がなければCD消費しない
+
+        // ボスダメージ
+        if (this.warpBossDamage > 0 && window.Obstacles.boss) {
+            window.Obstacles.boss.hp -= this.warpBossDamage;
+            if (window.Obstacles.boss.hp <= 0) window.Obstacles.boss.hp = 0;
+        }
+
+        // 燃料消費・エフェクト・CD更新
+        if (window.Player) window.Player.consumeFuel(this.warpFuelCost);
+        if (window.SoundManager) window.SoundManager.playAdjusted("bulletHit", "mining");
+        if (window.UI && window.UI.showFloatingText) {
+            window.UI.showFloatingText("WARP!", cx, pb.y - 20, "#AA66FF", "bold", "16px");
+        }
+        this.warpLastTime = now;
+    },
+
+    // 衝撃波のupdate処理（update()から呼ぶ）
+    _updateShockwave(now, canvas) {
+        if (!this.swLevel || !window.Obstacles || !window.Player) return;
+        if (now - this.swLastTime < this.swCooldownMs) return;
+        if (!window.Obstacles.obstacles.length && !window.Obstacles.boss) return;
+
+        const pb = window.Player.getBounds();
+        const cx = pb.x + pb.width / 2;
+        const cy = pb.y + pb.height / 2;
+        const radius = canvas.width * this.swRadiusMul;
+
+        const fireOnce = () => {
+            // 隕石を吹き飛ばす（破壊しない）
+            for (let i = window.Obstacles.obstacles.length - 1; i >= 0; i--) {
+                const ob = window.Obstacles.obstacles[i];
+                const dx = (ob.x + ob.width / 2) - cx;
+                const dy = (ob.y + ob.height / 2) - cy;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < radius) {
+                    // 上方向に高速で吹き飛ばす
+                    ob.speed = -canvas.height * 0.025 * this.swSpeedMul;
+                    ob.reflectFrames = 30; // 衝突猶予
+                }
+            }
+            // ボスダメージ
+            if (this.swBossDamage > 0 && window.Obstacles.boss) {
+                window.Obstacles.boss.hp = Math.max(0, window.Obstacles.boss.hp - this.swBossDamage);
+            }
+            if (window.Particles) window.Particles.createEffect(cx, cy, "#FFFFFF", "explosion");
+            if (window.UI && window.UI.showFloatingText) {
+                window.UI.showFloatingText("SHOCKWAVE!", cx, cy, "#FFFFFF", "bold", "16px");
+            }
+        };
+
+        fireOnce();
+        if (this.swDouble) {
+            setTimeout(() => { if (window.Game && window.Game.gameRunning) fireOnce(); }, 300);
+        }
+
+        if (window.Player) window.Player.consumeFuel(this.swFuelCost);
+        if (window.SoundManager) window.SoundManager.play("explosion");
+        this.swLastTime = now;
     },
 
     // ホーミング弾を発射
@@ -1092,6 +1193,7 @@ const Bullets = {
                 x: cx + spread - 3, y: cy,
                 vx: spread * 0.05, vy: -7,
                 speed: 7, size: 8,
+                width: 8, height: 8,
                 active: true,
                 target: this._findHomingTarget()
             });
@@ -1517,6 +1619,69 @@ const Bullets = {
                 ctx.stroke();
             }
         }
+        ctx.restore();
+    },
+
+    // ── ワープキャノンのCDインジケーター描画 ──
+    drawWarpCannon(ctx) {
+        if (!this.enabled || this.warpLevel === 0) return;
+        const pb = window.Player ? window.Player.getBounds() : null;
+        if (!pb) return;
+        const now = Date.now();
+        const elapsed = now - (this.warpLastTime || 0);
+        const progress = Math.min(elapsed / (this.warpCooldownMs || 3000), 1);
+        const cx = pb.x + pb.width / 2;
+        const cy = pb.y + pb.height / 2;
+        ctx.save();
+        // CDが溜まっているときは紫縦ラインを薄く表示
+        if (progress >= 1) {
+            ctx.globalAlpha = 0.3;
+            ctx.strokeStyle = "#AA66FF";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(cx, 0);
+            ctx.lineTo(cx, pb.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+        // CDリングをプレイヤー周囲に表示
+        ctx.globalAlpha = 0.5;
+        ctx.strokeStyle = progress >= 1 ? "#AA66FF" : "rgba(170,102,255,0.3)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, pb.width * 0.7, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress);
+        ctx.stroke();
+        ctx.restore();
+    },
+
+    // ── 衝撃波のCDインジケーター描画 ──
+    drawShockwave(ctx) {
+        if (!this.enabled || this.swLevel === 0) return;
+        const pb = window.Player ? window.Player.getBounds() : null;
+        if (!pb) return;
+        const canvas = ctx.canvas;
+        const now = Date.now();
+        const elapsed = now - (this.swLastTime || 0);
+        const progress = Math.min(elapsed / (this.swCooldownMs || 6000), 1);
+        const cx = pb.x + pb.width / 2;
+        const cy = pb.y + pb.height / 2;
+        const maxR = canvas.width * (this.swRadiusMul || 0.2);
+        ctx.save();
+        // 射程円（薄く常時表示）
+        ctx.globalAlpha = 0.12;
+        ctx.strokeStyle = "#FFFFFF";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(cx, cy, maxR, 0, Math.PI * 2);
+        ctx.stroke();
+        // CDリング
+        ctx.globalAlpha = 0.5;
+        ctx.strokeStyle = progress >= 1 ? "#FFFFFF" : "rgba(255,255,255,0.3)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, pb.width * 0.9, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress);
+        ctx.stroke();
         ctx.restore();
     },
 

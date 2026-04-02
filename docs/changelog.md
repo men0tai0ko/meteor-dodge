@@ -2,6 +2,67 @@
 
 ---
 
+## v3.0.0 — 2026-04-03
+
+### 機能追加
+
+- **F-15: スマホ2本指タップでポーズ**
+  - `touchStartHandler` に `e.touches.length >= 2` の判定を追加
+  - ゲーム中に2本指でタップすると `togglePause()` が呼ばれポーズモーダルを表示
+  - 1本指ドラッグ操作は変更なし
+
+- **F-17: 色覚サポートモード**
+  - 設定画面に「色覚サポート」トグルを追加（OFF/ON）
+  - ONにすると通常隕石（茶→青 `#4488CC`）・高速隕石（赤→オレンジ `#FF8800`）に配色変更
+  - `localStorage["colorblindMode"]` に保存。設定変更時リアルタイム反映・ゲーム開始時にも適用
+  - 大型隕石・ボスは変更なし
+
+- **F-20: 新武器2種追加**
+
+  **🌀 ワープキャノン**（Rare / 銀×30/60/120/240/480）
+  - 自機真上の隕石を自動消滅。隕石がいなければCDを消費しない
+  - Lv5で全画面縦1列を消去（ボス2ダメ付き）
+  - プレイヤー周囲に紫CDリングと縦ビームエフェクトを表示
+
+  | Lv | 効果 | 燃料消費 |
+  |---|---|---|
+  | 1 | 真上60px以内消滅 / CD3秒 | 2 |
+  | 2 | 真上100px以内 / CD2.5秒 | 2.5 |
+  | 3 | 真上150px以内 / CD2秒 | 3 |
+  | 4 | 真上200px以内 + ボス1ダメ / CD1.5秒 | 3.5 |
+  | 5 | 全画面縦1列消去 + ボス2ダメ / CD1秒 | 5 |
+
+  **💫 衝撃波**（Epic / 金×4/8/16/32/64）
+  - 自機周囲の隕石を上方へ吹き飛ばす（破壊しない・スコア加算なし）
+  - Lv5で2連射・射程円を薄く常時表示・白CDリングを表示
+
+  | Lv | 効果 | 燃料消費 |
+  |---|---|---|
+  | 1 | 半径20% / CD6秒 | 4 |
+  | 2 | 半径25% / CD5秒 | 5 |
+  | 3 | 半径30% / CD4秒 | 6 |
+  | 4 | 半径35% + 速度2倍 / CD3秒 | 7 |
+  | 5 | 半径40% + ボス1ダメ + 2連射 / CD3秒 | 8 |
+
+### バグ修正
+
+- **ホーミング弾 `hb` に `width/height` を追加**
+  - `homingBullets.push()` に `width: 8, height: 8` を追加
+  - `checkCollision()` 等の関数に渡した際の `undefined` 参照を予防
+
+### 実装詳細
+
+- `storage-system.js`：`warp_cannon` / `shockwave` の定義（levelEffects・価格・unlockLevel）
+- `storage-system.js`：`getEquippedWeaponEffect()` に warp/sw の extra 付加を追加
+- `entities.js`：`Bullets.update()` に `_updateWarpCannon()` / `_updateShockwave()` の呼び出しを追加
+- `entities.js`：`Bullets.reset()` に `warpLevel / warpLastTime / swLevel / swLastTime` のリセットを追加
+- `entities.js`：`drawWarpCannon()` / `drawShockwave()` を新規追加
+- `script.js`：`Game.draw()` に両武器の描画呼び出しを追加
+- `script.js`：`startGameDirectly()` の Bullets 初期化に `warpLevel / swLevel = 0` を追加
+- `script.js`：`setupColorblindSettings()` / `applyColorblindMode()` を `UI` オブジェクトに追加
+
+---
+
 ## v2.9.1 — 2026-04-03
 
 ### バグ修正

@@ -313,6 +313,58 @@ const StorageSystem = {
                 maxLevel: 5,
                 unlockLevel: { lv4: 500000, lv5: 1500000 },
                 usage: "equip"
+            },
+            warp_cannon: {
+                id: "warp_cannon",
+                name: "ワープキャノン",
+                type: "weapon",
+                rarity: "rare",
+                icon: "🌀",
+                description: "自機真上の隕石を瞬時に消滅させる。レベルで範囲拡大",
+                price: { common: 0, rare: 30, epic: 0 },
+                levelPrices: [
+                    { common: 0, rare: 30,  epic: 0 },
+                    { common: 0, rare: 60,  epic: 0 },
+                    { common: 0, rare: 120, epic: 0 },
+                    { common: 0, rare: 240, epic: 0 },
+                    { common: 0, rare: 480, epic: 0 }
+                ],
+                levelEffects: [
+                    { warpRange: 60,  warpCooldownMs: 3000, warpFuelCost: 2,   warpBossDamage: 0, warpFullColumn: false, desc: "真上60px以内の隕石を消滅 / CD3秒" },
+                    { warpRange: 100, warpCooldownMs: 2500, warpFuelCost: 2.5, warpBossDamage: 0, warpFullColumn: false, desc: "真上100px以内 / CD2.5秒" },
+                    { warpRange: 150, warpCooldownMs: 2000, warpFuelCost: 3,   warpBossDamage: 0, warpFullColumn: false, desc: "真上150px以内 / CD2秒" },
+                    { warpRange: 200, warpCooldownMs: 1500, warpFuelCost: 3.5, warpBossDamage: 1, warpFullColumn: false, desc: "真上200px以内 + ボス1ダメ / CD1.5秒" },
+                    { warpRange: 9999,warpCooldownMs: 1000, warpFuelCost: 5,   warpBossDamage: 2, warpFullColumn: true,  desc: "全画面縦1列を消去 + ボス2ダメ / CD1秒" }
+                ],
+                maxLevel: 5,
+                unlockLevel: { lv4: 500000, lv5: 1500000 },
+                usage: "equip"
+            },
+            shockwave: {
+                id: "shockwave",
+                name: "衝撃波",
+                type: "weapon",
+                rarity: "epic",
+                icon: "💫",
+                description: "周囲の隕石を吹き飛ばす。破壊ではないためスコアは加算されない",
+                price: { common: 0, rare: 0, epic: 4 },
+                levelPrices: [
+                    { common: 0, rare: 0, epic: 4  },
+                    { common: 0, rare: 0, epic: 8  },
+                    { common: 0, rare: 0, epic: 16 },
+                    { common: 0, rare: 0, epic: 32 },
+                    { common: 0, rare: 0, epic: 64 }
+                ],
+                levelEffects: [
+                    { swRadiusMul: 0.20, swCooldownMs: 6000, swFuelCost: 4, swSpeedMul: 1, swBossDamage: 0, swDouble: false, desc: "半径20% / CD6秒" },
+                    { swRadiusMul: 0.25, swCooldownMs: 5000, swFuelCost: 5, swSpeedMul: 1, swBossDamage: 0, swDouble: false, desc: "半径25% / CD5秒" },
+                    { swRadiusMul: 0.30, swCooldownMs: 4000, swFuelCost: 6, swSpeedMul: 1, swBossDamage: 0, swDouble: false, desc: "半径30% / CD4秒" },
+                    { swRadiusMul: 0.35, swCooldownMs: 3000, swFuelCost: 7, swSpeedMul: 2, swBossDamage: 0, swDouble: false, desc: "半径35% + 速度2倍 / CD3秒" },
+                    { swRadiusMul: 0.40, swCooldownMs: 3000, swFuelCost: 8, swSpeedMul: 2, swBossDamage: 1, swDouble: true,  desc: "半径40% + ボス1ダメ + 2連射 / CD3秒" }
+                ],
+                maxLevel: 5,
+                unlockLevel: { lv4: 500000, lv5: 1500000 },
+                usage: "equip"
             }
         },
         consumables: {
@@ -583,6 +635,8 @@ const StorageSystem = {
         if (weapon.id === "homing_shot")    extra.chain         = base.chain         || false;
         if (weapon.id === "piercing_shot")  extra.explode       = base.explode       || false;
         if (weapon.id === "piercing_shot")  extra.bulletSpeedBonus = base.bulletSpeedBonus || 0;
+        if (weapon.id === "warp_cannon")    extra.warpLevel     = lv + 1;
+        if (weapon.id === "shockwave")      extra.swLevel       = lv + 1;
         return { id: this.equippedWeapon.id, ...base, ...extra };
     },
 

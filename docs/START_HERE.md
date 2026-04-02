@@ -10,7 +10,7 @@
 隕石を避けながら飛行距離を伸ばし、鉱石を採掘してアイテム・武器・機体を強化する。  
 GitHub Pages でホスト済み: **https://men0tai0ko.github.io/meteor-dodge/**
 
-現在 **v2.9.1**。ポーズモーダル・BGM改修・設定画面改修・ボタン音バグ修正3件が完了。
+現在 **v3.0.0**。F-15（スマホ2本指タップポーズ）・F-17（色覚サポート）・F-20（新武器2種）・ホーミング弾バグ修正が完了。
 
 ---
 
@@ -74,37 +74,39 @@ GitHub Pages でホスト済み: **https://men0tai0ko.github.io/meteor-dodge/**
 | ポーズ | ESCキーでポーズモーダル表示・プレイ再開/タイトルへ選択可 |
 | キーショートカット | S:設定 / A:実績（ゲーム中のみ）|
 | BGM | タイトル無音・ゲーム開始時ファンファーレ（ワンフレーズ）・以降効果音のみ |
-| 設定画面 | データバックアップ（書き出し/読み込み）・振動項目スマホのみ表示 |
+| 設定画面 | データバックアップ（書き出し/読み込み）・振動項目スマホのみ表示・色覚サポートモード |
+| 武器 | 8種・最大Lv5（ワープキャノン・衝撃波を追加）|
 | デプロイ | GitHub Pages 稼働中 |
 
 ### 未実装（todo.mdを参照）
 
 | 優先度 | タスク |
 |:---:|---|
-| 🟢 | F-15〜F-20: 長押し操作・リプレイ・アクセシビリティ等 |
+| 🟢 | 未着手タスクなし（todo.mdを参照）|
 
 ---
 
-## 直近の変更内容（v2.9.1 / 本セッション）
+## 直近の変更内容（v3.0.0 / 本セッション）
 
-### v2.8.0：ポーズモーダル・キーショートカット
+### F-15：スマホ2本指タップポーズ
 
-- **ESCキーでポーズモーダルを表示**（プレイ再開 / タイトルへ）
-- 「タイトルへ」は `gameOver()` 経由（統計保存 → 統計画面 → タイトル）
-- `S` キー: 設定画面を開く / `A` キー: 実績画面を開く（ゲーム中のみ有効）
-- `Space` キーポーズ廃止・`R` キー削除
+- `touchStartHandler` で `e.touches.length >= 2` を判定 → `togglePause()` 呼び出し
+- 1本指ドラッグ操作は変更なし
 
-### v2.9.0：BGM改修・設定画面改修
+### F-17：色覚サポートモード
 
-- タイトル画面を無音化
-- ゲーム開始時にファンファーレ（ワンフレーズ・約4秒）を再生・以降は効果音のみ
-- 設定画面プルダウンデザイン統一・採掘効果音を効果音に統合・振動設定スマホのみ表示
+- 設定画面に「色覚サポート」トグルを追加
+- ON時：通常隕石（茶→青）・高速隕石（赤→オレンジ）に配色変更
+- `UI.applyColorblindMode()` でリアルタイム切替・ゲーム開始時にも適用
 
-### v2.9.1：バグ修正3件
+### F-20：新武器2種追加
 
-- `setupButtonWithSound` に `touchFired` フラグ追加 → ボタン音2重再生を修正
-- `achievementsBtnFromGame` を `setupButtonWithSound` で登録 → 実績ボタン音なしを修正
-- `showScreen()` 内の余分な音再生を削除 → 設定画面遷移で音が2回鳴る問題を修正
+- **🌀 ワープキャノン**（Rare）：自機真上の隕石を自動消滅。Lv5で全画面縦1列消去
+- **💫 衝撃波**（Epic）：周囲の隕石を上方へ吹き飛ばす（破壊なし・スコアなし）。Lv5で2連射
+
+### バグ修正
+
+- ホーミング弾 `hb` に `width: 8, height: 8` を追加（将来の undefined 参照を予防）
 
 ---
 
@@ -187,6 +189,11 @@ checks = [
     ("v2.7.0: white-space nowrap",      "white-space: nowrap" in css),
     ("v2.7.0: exportDataBtn HTML",      "exportDataBtn" in open('index.html',encoding='utf-8').read()),
     ("v2.7.0: BACKUP_KEYS in script",   "BACKUP_KEYS" in js),
+    ("v3.0.0: 2本指タップポーズ",        "e.touches.length >= 2" in js),
+    ("v3.0.0: applyColorblindMode",     "applyColorblindMode" in js),
+    ("v3.0.0: warp_cannon定義",         "warp_cannon" in open('storage-system.js',encoding='utf-8').read()),
+    ("v3.0.0: drawWarpCannon",          "drawWarpCannon" in open('entities.js',encoding='utf-8').read()),
+    ("v3.0.0: drawShockwave",           "drawShockwave" in open('entities.js',encoding='utf-8').read()),
 ]
 for k, v in checks:
     print(f'{"✅" if v else "❌ 要確認"} {k}')
@@ -204,7 +211,7 @@ for k, v in checks:
 「隕石を回避せよ ワームホールアドベンチャー」
 - ブラウザで動作するスマホファーストの宇宙船アクションゲーム
 - デプロイ先: https://men0tai0ko.github.io/meteor-dodge/
-- 現在バージョン: v2.9.1
+- 現在バージョン: v3.0.0
 - 言語: Vanilla JS / HTML / CSS（サーバー不要）
 
 【引き継ぎファイル】

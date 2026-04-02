@@ -1,8 +1,8 @@
 # 引き継ぎドキュメント：隕石を回避せよ ワームホールアドベンチャー
 
 **作成日**: 2026-04-02
-**対象バージョン**: v2.9.1
-**引き継ぎ元**: F-16ポーズモーダル・BGM改修・設定画面改修・バグ修正3件セッション
+**対象バージョン**: v3.0.0
+**引き継ぎ元**: F-15/F-17/F-20実装・ホーミング弾バグ修正セッション
 
 > **このファイルの役割**: 次の開発セッションを始めるための「今すぐ使える状態の地図」。
 > ゲーム仕様の詳細は `spec.md`、変更履歴は `changelog.md`、タスク一覧は `todo.md` を参照。
@@ -16,7 +16,7 @@
 
 ---
 
-## 2. ファイル構成（v2.9.1）
+## 2. ファイル構成（v3.0.0）
 
 | ファイル | 層 | 内容 |
 |---------|-----|------|
@@ -46,7 +46,7 @@
 | 🚀 機体 | 機体スロット＋機体購入（実績/鉱石） |
 | ✨ バフ | バフスロット3枠＋バフアイテム購入 |
 
-### 武器一覧（v2.9.1 / 全6種・最大Lv5）
+### 武器一覧（v3.0.0 / 全8種・最大Lv5）
 
 | 武器 | アイコン | レアリティ | Lv4効果 | Lv5固有効果 |
 |---|---|---|---|---|
@@ -56,6 +56,8 @@
 | チャージショット | ⚡ | Epic | 溜め短縮+ボス6ダメ | 連続爆発（0.5秒追撃） |
 | バリア砲 | 🛡️ | Epic | 幅拡大+燃料削減 | 反射バリア |
 | ホーミング弾 | 🎯 | Rare | 追尾4発+精度向上 | 連鎖ホーミング |
+| ワープキャノン | 🌀 | Rare | 真上200px+ボス1ダメ | 全画面縦1列消去+ボス2ダメ |
+| 衝撃波 | 💫 | Epic | 半径35%+速度2倍 | 半径40%+ボス1ダメ+2連射 |
 
 ### 難易度システム（v2.6.0新規）
 
@@ -111,6 +113,33 @@
 
 - `setupButtonWithSound` に `touchFired` フラグ追加（`touchstart` 後の `click` 二重発火防止）
 - 音の責務は各ボタンのイベントハンドラ側に統一（`showScreen()` は音を鳴らさない）
+
+### 色覚サポートモード（v3.0.0）
+
+- `localStorage["colorblindMode"]` で ON/OFF を保持
+- `UI.applyColorblindMode(enabled)` で `Obstacles.TYPES` の色を直接書き換え
+- 通常隕石: `#8B4513`（茶）→ `#4488CC`（青）/ 高速隕石: `#B22222`（赤）→ `#FF8800`（オレンジ）
+- `startGameDirectly()` 冒頭・設定変更時の両方で適用
+
+### スマホ2本指タップポーズ（v3.0.0）
+
+- `touchStartHandler` 冒頭で `e.touches.length >= 2` を判定
+- 2本指タップ時は `togglePause()` を呼んで早期リターン（1本指ドラッグは影響なし）
+
+### 新武器実装パターン（v3.0.0 / warp_cannon・shockwave）
+
+```
+storage-system.js: shopItems.upgrades に定義（levelEffects / levelPrices / unlockLevel）
+storage-system.js: getEquippedWeaponEffect() に extra 付加を追加
+entities.js:       _updateXxx(now, canvas) を Bullets オブジェクトに追加
+entities.js:       Bullets.update() 末尾から _updateXxx を呼び出す
+entities.js:       drawXxx(ctx) を Bullets オブジェクトに追加
+entities.js:       Bullets.reset() にフラグのリセットを追加
+script.js:         startGameDirectly() で effect.xxxKey があれば Bullets.xxxLevel 等を設定
+script.js:         startGameDirectly() の Bullets 初期化ブロックで xxxLevel = 0 をリセット
+script.js:         Game.draw() で window.Bullets.drawXxx(this.ctx) を呼び出す
+```
+
 
 
 
@@ -190,7 +219,7 @@ window.UI._isNewRecord   = isNewRecord;
 window.UI._prevBestScore = this.maxScore;
 ```
 
-### localStorage キー一覧（v2.9.1 完全版）
+### localStorage キー一覧（v3.0.0 完全版）
 
 | キー | 内容 |
 |---|---|
